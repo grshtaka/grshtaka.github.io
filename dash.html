@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ICMS</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="SSaS/icmssupreme.css">
+        <link rel="icon" href="icon.png" type="image/png" sizes="32x32">
+        <script src="SSaS/dash.js"></script>
+    </head>
+    <body id="megacenter"> 
+        <pre style="text-align: center;">ICMS SUPREME COMPUTATIONAL MEGASYSTEM</pre>
+        <hr>
+        <pre class="prep"><a href="mailto:armok.komra@gmail.com">EMAIL ME</a>     CREATED BY <a href="https://github.com/72armok">72ARMOK</a></pre>
+        <hr>
+        <pre>C &#9472;&#9552;&#9472; C:\ SYSTEM<br><br></pre>
+        <pre><a href="agenda.html">agenda.exe</a><br><br></pre>
+        <pre><a href="terminal.html">terminal.exe</a><br><br></pre>
+        <script>
+            var q = window.localStorage.getItem("files").replace("null", "");
+            q = q.split(";");
+            for (var j = 0; j < q.length; j++) {
+                var i = q[j];
+                if (i == "") {
+                    continue;
+                }
+                if (i.endsWith(".html")) {
+                    document.getElementById("megacenter").innerHTML += "<pre><a href=" + '"render.html#' + i + '">' + i + "</a><br><br></pre>";
+                    continue;
+                }
+                document.getElementById("megacenter").innerHTML += "<pre><a href=" + '"agenda.html#' + i + '">' + i + "</a><br><br></pre>";
+            }
+        </script>
+    </body>
+</html>
