@@ -1,0 +1,139 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHARACTER GENERATION</title>
+</head>
+<body>
+    <div style="text-align: center;">
+        <h1>Character Generator</h1>
+        <h2><input id="NAME" placeholder="NAME">, The <input id="TAGLINE" placeholder="TAGLINE"></h2>
+    </div>
+    <h3>Stats</h3>
+    <pre>
+<b>STR: </b><input type="number" id="STR" placeholder="ENTER VALUE"> <button onclick="randomize('STR')">RANDOMIZE</button>
+<b>DEX: </b><input type="number" id="DEX" placeholder="ENTER VALUE"> <button onclick="randomize('DEX')">RANDOMIZE</button>
+<b>DEF: </b><input type="number" id="DEF" placeholder="ENTER VALUE"> <button onclick="randomize('DEF')">RANDOMIZE</button>
+<b>END: </b><input type="number" id="END" placeholder="ENTER VALUE"> <button onclick="randomize('END')">RANDOMIZE</button>
+<b>HP: </b><input type="number" id="HP" placeholder="ENTER VALUE"> <button onclick="randomize('HP')">RANDOMIZE</button>
+<b>MANA: </b><input type="number" id="MANA" placeholder="ENTER VALUE"> <button onclick="randomize('MANA')">RANDOMIZE</button>
+    </pre>
+    <h3>Attacks</h3>
+    <input id="attackname" placeholder="Attack Name">
+    <input id="attackdesc" placeholder="Attack Description">
+    <input type="number" id="attackmana" placeholder="Attack Mana">
+    <br>
+    <button onclick="pasattack();">Add Passive Attack</button>
+    <button onclick="aggattack();">Add Active Attack</button>
+    <button onclick="ultattack();">Add <span style="color: red;">ULTIMATE</span></button>
+    <pre id="attacks"></pre>
+    <br>
+    <button onclick="charactercreate();"><b>CREATE CHARACTER</b></button>
+    <button onclick="copy();"><b>COPY CODE</b></button>
+    <div style="background-color: grey;">
+    <textarea style="width: 100vw; height: 100vh;"readonly id="dis_markup" value="a"></textarea>
+    <script>
+        var attacknames = [];
+        var attackdescs = [];
+        var attackmanas = [];
+        var attacktypes = [];
+        var charactercode = "";
+        document.getElementById("attacks").innerHTML = "\n";
+        function pasattack() {
+            var str = "<span><b>&ATTACKNAME</b> <i>(Passive, &ATTACKMANA)</i><br><div style='background-color: grey;'>&ATTACKDESC</div></span>";
+            var aname = document.getElementById("attackname").value;
+            var adesc = document.getElementById("attackdesc").value;
+            var amana = document.getElementById("attackmana").value;
+            str = str.replace("&ATTACKNAME", aname);
+            str = str.replace("&ATTACKDESC", adesc);
+            str = str.replace("&ATTACKMANA", amana);
+            attacknames.push(aname);
+            attackdescs.push(adesc);
+            attackmanas.push(amana);
+            attacktypes.push("p");
+            document.getElementById("attacks").innerHTML = document.getElementById("attacks").innerHTML.replace("\n", "<br>"+str+"\n");
+        }
+        function aggattack() {
+            var str = "<span><b>&ATTACKNAME</b> <i>(Active, &ATTACKMANA)</i><br><div style='background-color: grey;'>&ATTACKDESC</div></span>";
+            var aname = document.getElementById("attackname").value;
+            var adesc = document.getElementById("attackdesc").value;
+            var amana = document.getElementById("attackmana").value;
+            str = str.replace("&ATTACKNAME", aname);
+            str = str.replace("&ATTACKDESC", adesc);
+            str = str.replace("&ATTACKMANA", amana);
+            attacknames.push(aname);
+            attackdescs.push(adesc);
+            attackmanas.push(amana);
+            attacktypes.push("a");
+            document.getElementById("attacks").innerHTML = document.getElementById("attacks").innerHTML.replace("\n", "<br>"+str+"\n");
+        }
+        function ultattack() {
+            var str = "<b><span><span style='color: red;'>ULTIMATE</span></b> <b>&ATTACKNAME</b> <i>(&ATTACKMANA)</i><br><div style='background-color: grey;'>&ATTACKDESC</div></span>";
+            var aname = document.getElementById("attackname").value;
+            var adesc = document.getElementById("attackdesc").value;
+            var amana = document.getElementById("attackmana").value;
+            str = str.replace("&ATTACKNAME", aname);
+            str = str.replace("&ATTACKDESC", adesc);
+            str = str.replace("&ATTACKMANA", amana);
+            attacknames.push(aname);
+            attackdescs.push(adesc);
+            attackmanas.push(amana);
+            attacktypes.push("u");
+            document.getElementById("attacks").innerHTML = document.getElementById("attacks").innerHTML.replace("\n", "<br>"+str+"\n");
+        }
+        function randomize(param) {
+            document.getElementById(param).value = Math.floor(Math.random() * 101);
+        }
+        function charactercreate() {
+            var name = document.getElementById("NAME").value;
+            var tagline = document.getElementById("TAGLINE").value;
+            var str = document.getElementById("STR").value;
+            var dex = document.getElementById("DEX").value;
+            var def = document.getElementById("DEF").value;
+            var end = document.getElementById("END").value;
+            var hp = document.getElementById("HP").value;
+            var mana = document.getElementById("MANA").value;
+            var firststr = [
+                "***"+name+", The "+tagline+"***\n",
+                "**Stats**",
+                "*STR:* "+str,
+                "*DEX:* "+dex,
+                "*DEF:* "+def,
+                "*END:* "+end,
+                "*HP:* "+hp,
+                "*MANA:* "+mana,
+                "\n**Attacks**\n"
+            ];
+            var secondstr = [];
+            for (var i = 0; i < (attacknames.length); i++) {
+                var header = "*" + attacknames[i] + "*";
+                if (attacktypes[i] == "u") {
+                    header = "**ULTIMATE** " + header + " (" + attackmanas[i] + " MANA): " + attackdescs[i];
+                }
+                else {
+                    switch(attacktypes[i]) {
+                        case "p":
+                            header += " (PASSIVE ; ";
+                            break;
+                        case "a":
+                            header += " (ATTACK ; ";
+                            break;
+                        default:
+                            break;
+                    }
+                    header += attackmanas[i] + " MANA): " + attackdescs[i];
+                }
+                secondstr.push(header);
+            }
+            charactercode = firststr.join("\n") + secondstr.join("\n");
+            document.getElementById("dis_markup").value = charactercode;
+        }
+        function copy() {
+            var cpy = document.getElementById("dis_markup");
+            cpy.select();
+            cpy.setSelectionRange(0, 999999);
+            document.execCommand("copy");
+        }
+    </script>
+</body>
+</html>
