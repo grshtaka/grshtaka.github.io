@@ -1,6 +1,6 @@
 if (!document.cookie.split('; ').find(row => row.startsWith('dS'))) {
     document.cookie = "dS=true; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=None; Secure";
-    window.localStorage.setItem("files", ";clue1.txt");
+    window.localStorage.setItem("files", ";clue2.txt");
     var q = [
 '--------------------------------------------------------------------------------------------------------------',
 
@@ -60,8 +60,8 @@ if (!document.cookie.split('; ').find(row => row.startsWith('dS'))) {
 'This will open the file you want to edit. To delete a file, you must first open it and then click the "delete',
 'file" button.'
     ];
-    window.localStorage.setItem("clue1.txt", q.join("\n"));
+    window.localStorage.setItem("clue2.txt", q.join("\n"));
 }
 if (location.hash.startsWith("#OPENINTEXT;")) {
-    window.location.replace("agenda.html#" + location.hash.split(";")[1]);
+    window.location.replace("clue2.html#" + location.hash.split(";")[1]);
 }
