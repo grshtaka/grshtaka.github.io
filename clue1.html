@@ -3,27 +3,22 @@
     <head>
         <title>ICMS</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="SSaS/terminal.css">
+        <link rel="stylesheet" href="SSaS/icmssupreme.css">
         <link rel="icon" href="icon.png" type="image/png" sizes="32x32">
-        <style>
-            input:focus {
-                outline: none;
-            }
-        </style>
     </head>
-    <body id="opcenter">
-        <pre style="text-align: center;">TERMINAL</pre>
-        <hr>
-        <pre><a href="dash.html">GO TO DASHBOARD</a></pre>
-        <hr>
-        <div id="pholderholder">
-            <pholderclass></pholderclass>
+    <body style="overflow-y: scroll;">
+        <div style="text-align: center;">
+            <input style="text-align: center;" id="filename" value="agenda.txt"></input>
         </div>
-        <ecthhh>
-            <hr>
-            <pre style="display: inline;">C:\DESKTOP&gt;</pre>
-            <input spellcheck="false">
-        </ecthhh>
-        <script src="SSaS/terminal.js"></script>
+        <hr>
+        <pre><a href="dash.html">GO TO DASHBOARD</a>   <a href="#" onclick="savedoc();">SAVE FILE</a>   <a href="#" onclick="deletedoc();">DELETE FILE</a>   <a href="#" onclick="opendoc();">OPEN FILE</a></pre>
+        <hr>
+        <textarea id="main" spellcheck="false"></textarea>
+        <script src="SSaS/agendascript.js"></script>
+        <div>
+            <p>
+                Blablabal
+            </p>
+        </div>
     </body>
 </html>
