@@ -86,10 +86,9 @@ textarea {
 }
 
 textarea.lotus {
-    background-image: url("assets/lotus.gif");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
+    background:url('assets/lotus.gif') repeat-y 100% 100% fixed;
+    height:100%;
+    width:100%;
 }
 
 textarea:focus {
