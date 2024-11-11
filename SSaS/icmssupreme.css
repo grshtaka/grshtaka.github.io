@@ -14,7 +14,12 @@
 ::-webkit-scrollbar-thumb {
     background: rgb(255, 255, 255);
 }
-  
+
+.lotus {
+    backgroun-image: url(assets/lotus.gif);
+    background-size: cover;
+}
+
 body {
     background-color: rgb(0, 0, 0);
     color: white;
