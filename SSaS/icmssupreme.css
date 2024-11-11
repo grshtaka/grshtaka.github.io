@@ -17,8 +17,6 @@
   
 body {
     background-image: url("assets/lotus.gif");
-    background-repeat: no repeat;
-    background-size: cover;
     color: white;
     font-size: 30px;
     margin: 0;
