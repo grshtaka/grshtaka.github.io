@@ -16,7 +16,7 @@
 }
 
 .lotus {
-    backgroun-image: url("assets/lotus.gif");
+    background-image: url("assets/lotus.gif");
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
