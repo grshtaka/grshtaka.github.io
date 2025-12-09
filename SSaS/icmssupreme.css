@@ -144,8 +144,8 @@ html::after {
     background-image:
         repeating-linear-gradient(
             
-            rgba(255,0,0,0.22) 9px,
-            rgba(0,255,0,0.13) 10px,
+            rgba(255,0,0,0.17) 9px,
+            rgba(0,255,0,0.09) 10px,
             rgba(0,0,255,0.03) 25px
         );
 
@@ -167,9 +167,9 @@ html::before {
         linear-gradient(rgba(0,0,0,0) 40%, rgba(0,0,0,0.25) 30%),
         /* RGB tint */
         linear-gradient(90deg,
-            rgba(255, 0, 0, 0.07),
-            rgba(0, 255, 0, 0.05),
-            rgba(0, 0, 255, 0.07)
+            rgba(255, 0, 0, 0.05),
+            rgba(0, 255, 0, 0.03),
+            rgba(0, 0, 255, 0.05)
         ),
         radial-gradient(ellipse at center,
             rgba(255,255,255,0.12) 10%,
