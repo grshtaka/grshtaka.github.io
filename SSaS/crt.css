@@ -127,37 +127,42 @@ input {
 html::before {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     pointer-events: none;
-    z-index: 2;
+    z-index: 100;
 
     background:
-        /* scanlines stronger */
-        linear-gradient(rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.4) 55%),
-        /* RGB color tint stronger */
+        /* darker scanlines */
+        linear-gradient(rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55) 60%),
+        /* stronger RGB tint */
         linear-gradient(90deg,
-            rgba(255, 0, 0, 0.22),
-            rgba(0, 255, 0, 0.15),
-            rgba(0, 0, 255, 0.22)
+            rgba(255, 0, 0, 0.14),
+            rgba(0, 255, 0, 0.07),
+            rgba(0, 0, 255, 0.14)
         );
 
-    background-size: 100% 3px, 3px 100%;
+    /* MUCH bigger scanlines so movement is visible */
+    background-size: 100% 4px, 8px 100%;
 
-    animation: crt-scan 8s linear infinite, crt-flicker 0.12s infinite;
+    animation: crt-scan 2.5s linear infinite, crt-flicker 0.15s infinite;
+
+    /* Curve effect */
+    transform: perspective(500px) scale(1.02) translateZ(0);
+    border-radius: 2px;
+
+    /* subtle vignette */
+    box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
 }
 
-/* slow vertical scanline scroll */
+/* scanline scroll – more movement */
 @keyframes crt-scan {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(3px); }
+    0% { transform: perspective(500px) scale(1.02) translateY(0); }
+    100% { transform: perspective(500px) scale(1.02) translateY(4px); }
 }
 
-/* subtle flicker */
+/* flicker */
 @keyframes crt-flicker {
-    0%   { opacity: 0.97; }
-    50%  { opacity: 0.92; }
-    100% { opacity: 0.98; }
+    0%   { opacity: 0.92; }
+    50%  { opacity: 0.98; }
+    100% { opacity: 0.94; }
 }
