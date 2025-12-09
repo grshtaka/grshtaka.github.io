@@ -18,7 +18,8 @@
 body {
     background-color: rgb(0, 0, 0);
     color: white;
-    font-size: 30px;
+    font-family: "BIOS";
+    font-size: 20px;
     margin: 0;
     padding: 0;
     overflow: hidden;
