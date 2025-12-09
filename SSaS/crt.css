@@ -43,6 +43,9 @@ pre::-moz-selection {
 }
 
 pre {
+    color: white;
+    font-family: "BIOS";
+    font-size: 20px;
     margin: 0;
     padding: 0;
 }
@@ -54,6 +57,9 @@ hr {
 }
 
 a {
+    color: white;
+    font-family: "BIOS";
+    font-size: 20px;
     margin: 0;
     padding: 0;
     text-decoration: none;
@@ -73,6 +79,9 @@ textarea {
     background-color: rgb(0, 0, 0);
     border-color : rgb(0, 0, 0);
     resize : none;
+    font-family: "BIOS";
+    font-size: 20px;
+    color: white;
     width: 100%;
     height: 100vh;
 }
@@ -87,6 +96,9 @@ textarea:focus {
     background-color: rgb(0, 0, 0);
     border-color : rgb(0, 0, 0);
     resize : none;
+    font-family: "BIOS";
+    color: white;
+    font-size: 20px;
     width: 100%;
     height: 100vh;
 }
@@ -105,6 +117,9 @@ input {
     background-color: rgb(0, 0, 0);
     border-color : rgb(0, 0, 0);
     resize : none;
+    font-family: "BIOS";
+    color: white;
+    font-size: 20px;
     padding: 0;
     margin: 0;
 }
