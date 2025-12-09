@@ -32,18 +32,18 @@ async function boot() {
     var megamsg = [
         ":<<<<<<<<<<<-O->>>>>>>>>>>>:",
         " <||||||||||||||||||||||||> ",
-        " <||| ICMS CONFIG FILE |||> ",
+        " <|||RUNNING CONFIG FILE||> ",
         " <|----------------------|> ",
         " <|||                  |||> ",
         " <||                    ||> ",
         " <|    Thank you for     |> ",
-        " <|   choosing  ICMS!    |> ",
+        " <| visiting the GARDEN! |> ",
         " <|     Running the      |> ",
-        " <|    ICMS config...    |> ",
+        " <|   GARDEN config...   |> ",
         " <||                    ||> ",
         " <|||                  |||> ",
         " <|----------------------|> ",
-        " <||| ICMS MEGASYSTEMS |||> ",
+        " <|||    THE GARDEN    |||> ",
         " <||||||||||||||||||||||||> ",
         ":<<<<<<<<<<<-O->>>>>>>>>>>>:"
     ];
