@@ -49,7 +49,7 @@ async function boot() {
     ];
     const concom = function (q) { q = q.replace("\n", "<br>"); return path + q; }
     const com = function (q) { return q.replace("\n", "<br>"); }
-    document.getElementById("boot").innerHTML += concom("runcog ICMS.cog\n");
+    document.getElementById("boot").innerHTML += concom("runcog GARDEN.cog\n");
     await sleep(200);
     document.getElementById("boot").innerHTML += com("cogcontent: 'exec K.MS; exec S.MS; exec GRAPH.MS;\n")
     await sleep(30);
@@ -70,6 +70,6 @@ async function boot() {
     await sleep(100);
     document.getElementById("boot").innerHTML += concom("exec GRAPH.MS\n");
     await sleep(300);
-    window.location.href = "launch.html";
+    window.location.href = "dash.html";
 }
 boot();
