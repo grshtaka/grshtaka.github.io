@@ -32,13 +32,13 @@ if (!document.cookie.split('; ').find(row => row.startsWith('dS'))) {
 '',
 '--------------------------------------------------------------------------------------------------------------',
 '',
-'This is a place where I gather the fragments— ',
+'This is a place where I gather the fragments- ',
 'dreams, symbols, thoughts, and the moments that feel more real than reality itself.',
 '',
 'A place to track the patterns that move beneath the surface of ordinary life',
 '',
 'and to observe the mind the way a smith studies metal:',
-'heating it, folding it, burning away what doesn’t belong,',
+'heating it, folding it, burning away what doesn'"'"'t belong,',
 'and shaping what remains into something precise.',
 ''
     ];
