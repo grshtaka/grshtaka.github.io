@@ -133,7 +133,7 @@ html::before {
 
     background:
         /* darker scanlines */
-        linear-gradient(rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55) 60%),
+        linear-gradient(rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.4) 55%),
         /* stronger RGB tint */
         linear-gradient(90deg,
             rgba(255, 0, 0, 0.14),
@@ -147,7 +147,7 @@ html::before {
     animation: crt-scan 2.5s linear infinite, crt-flicker 0.15s infinite;
 
     /* Curve effect */
-    transform: perspective(500px) scale(1.02) translateZ(0);
+    transform: perspective(300px) scale(1.05) translateZ(0);
     border-radius: 2px;
 
     /* subtle vignette */
