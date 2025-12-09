@@ -144,13 +144,13 @@ html::after {
     background-image:
         repeating-linear-gradient(
             
-            rgba(255,0,0,0.12) 9px,
-            rgba(0,255,0,0.03) 10px,
+            rgba(255,0,0,0.22) 9px,
+            rgba(0,255,0,0.13) 10px,
             rgba(0,0,255,0.03) 25px
         );
 
     opacity: 0.6;
-    animation: crt-static 2.7s steps(54) infinite,
+    animation: crt-static 2.7s steps(53) infinite,
                 crt-flicker 0.25s infinite;
 }
 
