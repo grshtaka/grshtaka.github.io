@@ -139,9 +139,9 @@ html::before {
         linear-gradient(rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.4) 55%),
         /* RGB color tint stronger */
         linear-gradient(90deg,
-            rgba(255, 0, 0, 0.12),
-            rgba(0, 255, 0, 0.05),
-            rgba(0, 0, 255, 0.12)
+            rgba(255, 0, 0, 0.22),
+            rgba(0, 255, 0, 0.15),
+            rgba(0, 0, 255, 0.22)
         );
 
     background-size: 100% 3px, 3px 100%;
