@@ -126,6 +126,8 @@ input {
 html::before {
     content: "";
     position: fixed;
+    font-family: "BIOS";
+    font-size: 20px;
     top: 0;
     left: 0;
     right: 0;
