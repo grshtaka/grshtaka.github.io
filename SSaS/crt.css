@@ -1,0 +1,52 @@
+.crt {
+    position: relative;
+    overflow: hidden;
+    background: black;
+    color: #0aff0a; /* green terminal text */
+  }
+  
+  /* Scanline + RGB tint overlay */
+  .crt::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  
+    background: 
+      /* stronger scanlines */
+      linear-gradient(rgba(0,0,0,0) 45%, rgba(0,0,0,0.35) 55%),
+      /* stronger RGB tint */
+      linear-gradient(90deg,
+        rgba(255, 0, 0, 0.12),
+        rgba(0, 255, 0, 0.05),
+        rgba(0, 0, 255, 0.12)
+      );
+  
+    background-size: 100% 3px, 100% 100%;
+    
+    /* Movement of scanlines */
+    animation: crtScan 6s linear infinite;
+  }
+  
+  /* Very subtle flicker */
+  .crt::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.02);
+    pointer-events: none;
+    animation: crtFlicker 0.12s infinite;
+  }
+  
+  /* Scanline movement (slow vertical drift) */
+  @keyframes crtScan {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(3px); }
+  }
+  
+  /* Flicker animation */
+  @keyframes crtFlicker {
+    0%   { opacity: 0.01; }
+    50%  { opacity: 0.03; }
+    100% { opacity: 0.005; }
+  }
