@@ -144,8 +144,8 @@ html::after {
     background-image:
         repeating-linear-gradient(
             
-            rgba(255,0,0,0.17) 9px,
-            rgba(0,255,0,0.09) 10px,
+            rgba(255,0,0,0.12) 9px,
+            rgba(0,255,0,0.07) 10px,
             rgba(0,0,255,0.03) 25px
         );
 
