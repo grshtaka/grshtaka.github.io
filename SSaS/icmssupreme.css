@@ -32,6 +32,10 @@ img {
     width: 50%;
 }
 
+#indent {
+    padding-left: 12vh;
+}
+
 pre::selection {
     background: white;
     color: black;
