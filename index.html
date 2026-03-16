@@ -17,7 +17,8 @@
 ::selection { background: white; color: black; }
 ::-moz-selection { background: white; color: black; }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: "BIOS" !important; }
+* { cursor: none !important; }
 
 body {
   background-color: #000;
@@ -36,7 +37,7 @@ a {
   font-size: 20px;
   margin: 0; padding: 0;
   text-decoration: none;
-  cursor: pointer;
+  cursor: none;
 }
 a:hover { color: black; background-color: white; transition-delay: 100ms; }
 
@@ -49,7 +50,7 @@ pre {
 }
 pre::selection { background: white; color: black; }
 
-hr { margin: 0; padding: 0; border: 2px solid white; }
+hr { margin: 0; padding: 0; border: 1px solid #333; }
 
 /* CRT */
 html::after {
@@ -89,14 +90,27 @@ html::before {
 /* cursor */
 #cursor {
   position: fixed;
-  width: 10px; height: 20px;
-  background: white;
+  width: 18px; height: 18px;
   pointer-events: none;
   z-index: 9999;
-  animation: blink-cur 1s step-end infinite;
-  transform: translate(-1px, -2px);
+  transform: translate(-9px, -9px);
 }
-@keyframes blink-cur { 0%,100%{opacity:1} 50%{opacity:0} }
+#cursor::before {
+  content: '';
+  position: absolute;
+  left: 8px; top: 0;
+  width: 2px; height: 18px;
+  background: white;
+  opacity: 0.8;
+}
+#cursor::after {
+  content: '';
+  position: absolute;
+  top: 8px; left: 0;
+  width: 18px; height: 2px;
+  background: white;
+  opacity: 0.8;
+}
 
 /* screens */
 .screen { display: none; }
@@ -107,10 +121,17 @@ html::before {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  text-align: center;
   min-height: 90vh;
 }
+#boot-lines {
+  position: absolute;
+  top: 3vh;
+  left: 3vh;
+  text-align: left;
+}
 .boot-line {
-  font-family: "BIOS";
   font-size: 20px;
   color: white;
   opacity: 0;
@@ -120,11 +141,15 @@ html::before {
 .boot-line.lit { opacity: 1; }
 #boot-title {
   font-family: "BIOS";
-  font-size: 48px;
+  font-size: 64px;
   color: white;
   margin: 4vh 0 1vh;
   opacity: 0;
+  line-height: 1.1;
+  white-space: pre;
+  transition: color .3s;
 }
+#boot-title:hover { color: #888; }
 #boot-sub {
   font-family: "BIOS";
   font-size: 16px;
@@ -132,20 +157,6 @@ html::before {
   opacity: 0;
   margin-bottom: 5vh;
 }
-#boot-enter {
-  display: inline-block;
-  font-family: "BIOS";
-  font-size: 20px;
-  color: white;
-  border: 2px solid white;
-  padding: 8px 24px;
-  cursor: pointer;
-  opacity: 0;
-  width: fit-content;
-}
-#boot-enter.ready { animation: blink-btn 1.2s step-end infinite; }
-#boot-enter:hover { color: black; background: white; }
-@keyframes blink-btn { 0%,100%{opacity:1} 50%{opacity:.2} }
 
 /* DASH */
 .dash-header { margin-bottom: 3vh; }
@@ -191,7 +202,7 @@ html::before {
   color: #444;
   font-family: "BIOS";
 }
-.reader-fname { font-family: "BIOS"; font-size: 14px; color: #444; margin-bottom: 1vh; }
+.reader-fname { display: none; }
 .reader-heading { font-family: "BIOS"; font-size: 36px; color: white; margin-bottom: 8px; }
 .reader-kind { font-family: "BIOS"; font-size: 16px; color: #666; margin-bottom: 4vh; display: block; }
 
@@ -211,25 +222,19 @@ html::before {
 .verse-stanza { margin-bottom: 2em; }
 .verse-line {
   display: block;
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity .4s ease, transform .4s ease;
+  min-height: 1.2em;
 }
-.verse-line.show { opacity: 1; transform: none; }
 .refrain {
   display: block;
   color: #777;
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity .4s ease, transform .4s ease;
   margin: 2px 0;
+  min-height: 1.2em;
 }
-.refrain.show { opacity: 1; transform: none; }
 
 .reader-footer {
   margin-top: 4vh;
   padding-top: 2vh;
-  border-top: 2px solid white;
+  border-top: 1px solid #333;
   display: flex;
 }
 .footer-btn {
@@ -261,36 +266,26 @@ html::before {
 </head>
 <body>
 
+<canvas id="petals" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
 <div id="cursor"></div>
 
 <!-- BOOT -->
 <div id="boot" class="screen active">
   <div id="boot-lines"></div>
-  <div id="boot-title">THE GARDEN</div>
+  <div id="boot-title" style="cursor:pointer;">ENTER THE GARDEN</div>
   <div id="boot-sub">a place where things come to remain</div>
-  <div id="boot-enter">[ ENTER THE GARDEN ]</div>
 </div>
 
 <!-- DASH -->
 <div id="dash" class="screen">
   <div class="dash-header">
-    <pre>C:\GARDEN -- WELCOME</pre>
+    <pre style="color:#444; font-size:16px;">C:\GARDEN -- WELCOME</pre>
     <hr style="margin: 8px 0;">
-    <pre>THE GARDEN OF MIRRORS</pre>
-    <hr style="margin: 8px 0 0;">
+    <pre style="font-size: 40px; line-height: 1.2; margin: 2vh 0;">ENTER THE MANIFOLD</pre>
+    <hr style="margin: 0 0 3vh 0;">
   </div>
 
-  <div class="intro-text">
-    This is a place where I gather the fragments --<br>
-    dreams, symbols, thoughts, and the moments that feel more real than reality itself.<br><br>
-    A place to track the patterns that move beneath the surface of ordinary life<br>
-    and to observe the mind the way a smith studies metal:<br>
-    heating it, folding it, burning away what doesn't belong,<br>
-    and shaping what remains into something precise.
-  </div>
-
-  <hr style="margin: 2vh 0 1vh;">
-  <pre style="color:#444; font-size:16px; margin-bottom:1vh;">C:\GARDEN\MEMORY\</pre>
+  <pre style="color:#444; font-size:16px; margin-bottom:1vh;">C:\GARDEN\</pre>
 
   <table class="file-table" id="file-table"></table>
 
@@ -325,6 +320,22 @@ html::before {
 
 <script>
 const FILES = [
+  {
+    name:'MIRRORS.TXT', heading:'MIRRORS.TXT', kind:'[ ABOUT ]',
+    path:'C:\\GARDEN\\MIRRORS.TXT',
+    type:'verse',
+    content:[
+      {t:'line',text:'This is a place where I gather the fragments --'},
+      {t:'line',text:'dreams, symbols, thoughts,'},
+      {t:'line',text:'and the moments that feel more real than reality itself.'},
+      {t:'stanza'},
+      {t:'line',text:'A place to track the patterns that move beneath the surface of ordinary life'},
+      {t:'line',text:'and to observe the mind the way a smith studies metal:'},
+      {t:'stanza'},
+      {t:'line',text:'heating it, folding it, burning away what does not belong,'},
+      {t:'line',text:'and shaping what remains into something precise.'},
+    ]
+  },
   {
     name:'CLUE1.TXT', heading:'CLUE1.TXT', kind:'[ COSMOGONY ]',
     path:'C:\\GARDEN\\CLUE1.TXT',
@@ -477,11 +488,6 @@ function runBoot() {
         document.getElementById('boot-title').style.opacity='1';
         setTimeout(()=>{
           document.getElementById('boot-sub').style.opacity='1';
-          setTimeout(()=>{
-            const btn = document.getElementById('boot-enter');
-            btn.style.opacity='1';
-            btn.classList.add('ready');
-          },500);
         },300);
       },400);
       return;
@@ -496,7 +502,7 @@ function runBoot() {
   }
   step();
 }
-document.getElementById('boot-enter').addEventListener('click',()=>{
+document.getElementById('boot-title').addEventListener('click',()=>{
   show('dash'); buildTable();
   document.getElementById('status-file').textContent='THE GARDEN -- BROWSING';
 });
@@ -537,17 +543,40 @@ function openFile(idx) {
     } else {
       const span=document.createElement('span');
       span.className = item.t==='refrain' ? 'refrain' : 'verse-line';
-      span.textContent=item.text;
+      span.dataset.text = item.text;
+      span.style.fontFamily = '"BIOS"';
+      span.style.color = 'transparent';
+      span.textContent = item.text;
       stanza.appendChild(span);
     }
   });
   if(stanza.children.length) body.appendChild(stanza);
 
   setTimeout(()=>{
-    body.querySelectorAll('.verse-line,.refrain').forEach((el,i)=>{
-      setTimeout(()=>el.classList.add('show'), i*70);
-    });
-  },100);
+    const els = Array.from(body.querySelectorAll('.verse-line,.refrain'));
+    let lineIdx = 0;
+    function typeLine() {
+      if(lineIdx >= els.length) return;
+      const el = els[lineIdx];
+      const full = el.dataset.text;
+      const isRefrain = el.classList.contains('refrain');
+      el.style.color = isRefrain ? '#777' : 'white';
+      el.textContent = '';
+      let charIdx = 0;
+      function typeChar() {
+        if(charIdx < full.length) {
+          el.textContent += full[charIdx];
+          charIdx++;
+          setTimeout(typeChar, 3 + Math.random() * 3);
+        } else {
+          lineIdx++;
+          setTimeout(typeLine, 10);
+        }
+      }
+      typeChar();
+    }
+    typeLine();
+  }, 100);
 
   const prev = document.getElementById('prev-btn');
   const next = document.getElementById('next-btn');
@@ -565,6 +594,312 @@ document.getElementById('dash-btn').addEventListener('click',()=>{
   show('dash');
   document.getElementById('status-file').textContent='THE GARDEN -- BROWSING';
 });
+
+// falling petals
+const petalCanvas = document.getElementById('petals');
+const pc = petalCanvas.getContext('2d');
+let pW, pH, petalList = [];
+let petalOpacity = 0;
+function resizePetals() {
+  pW = petalCanvas.width = window.innerWidth;
+  pH = petalCanvas.height = window.innerHeight;
+}
+resizePetals();
+window.addEventListener('resize', resizePetals);
+
+function makePetal() {
+  const size = 4 + Math.random() * 7;
+  const depth = Math.random();
+  return {
+    type: 'leaf',
+    x: Math.random() * pW,
+    y: -20,
+    size: size * (0.6 + depth * 0.6),
+    variant: Math.floor(Math.random() * 4),
+    speedY: (0.2 + Math.random() * 0.4) + depth * 0.5,
+    speedX: (Math.random() - 0.5) * 0.3,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.018 * (0.4 + depth * 0.8),
+    alpha: 0.06 + depth * 0.28,
+    depth,
+    sway: Math.random() * Math.PI * 2,
+    swaySpeed: 0.003 + depth * 0.008,
+  };
+}
+
+function makeTwig() {
+  return {
+    type: 'twig',
+    x: Math.random() * pW,
+    y: -20,
+    len: 12 + Math.random() * 20,
+    speedY: 0.3 + Math.random() * 0.5,
+    speedX: (Math.random() - 0.5) * 0.25,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.008,
+    alpha: 0.06 + Math.random() * 0.1,
+    sway: Math.random() * Math.PI * 2,
+    swaySpeed: 0.003 + Math.random() * 0.005,
+    branches: Math.floor(Math.random() * 2) + 1,
+  };
+}
+
+for(let i = 0; i < 22; i++) {
+  const p = makePetal();
+  p.y = Math.random() * pH;
+  petalList.push(p);
+}
+for(let i = 0; i < 6; i++) {
+  const t = makeTwig();
+  t.y = Math.random() * pH;
+  petalList.push(t);
+}
+
+// wind — rare but powerful
+let windStrength = 0;
+let windTarget = 0;
+let windTimer = 0;
+let isGusting = false;
+let gustLeafTimer = 0;
+
+function updateWind() {
+  windTimer--;
+  if(windTimer <= 0) {
+    if(!isGusting && Math.random() < 0.15) {
+      isGusting = true;
+      windTarget = (Math.random() < 0.5 ? 1 : -1) * (2.5 + Math.random() * 2);
+      windTimer = 180 + Math.random() * 240;
+    } else {
+      isGusting = false;
+      windTarget = (Math.random() - 0.5) * 0.2;
+      windTimer = 1200 + Math.random() * 2400;
+    }
+  }
+  windStrength += (windTarget - windStrength) * 0.003;
+
+  if(isGusting) {
+    gustLeafTimer--;
+    if(gustLeafTimer <= 0) {
+      const burst = makePetal();
+      burst.y = Math.random() * pH * 0.8;
+      burst.speedY = 0.8 + Math.random() * 1.2;
+      petalList.push(burst);
+      gustLeafTimer = 8 + Math.floor(Math.random() * 12);
+    }
+  }
+}
+
+// dust particles at bottom
+const dustList = [];
+function makeDust() {
+  return {
+    x: Math.random() * pW,
+    y: pH - 2 - Math.random() * 18,
+    r: 0.5 + Math.random() * 1.5,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: -(Math.random() * 0.2),
+    alpha: 0.05 + Math.random() * 0.15,
+    life: 1,
+    decay: 0.003 + Math.random() * 0.005,
+  };
+}
+for(let i = 0; i < 40; i++) dustList.push(makeDust());
+
+function updateDust() {
+  const windFactor = Math.abs(windStrength);
+  for(let i = dustList.length - 1; i >= 0; i--) {
+    const d = dustList[i];
+    d.x += d.vx + windStrength * 0.6;
+    d.y += d.vy;
+    d.life -= d.decay * (1 + windFactor * 0.5);
+    if(d.life <= 0 || d.y < pH - 60) {
+      dustList[i] = makeDust();
+      dustList[i].x = windStrength > 0 ? Math.random() * pW * 0.3 : pW * 0.7 + Math.random() * pW * 0.3;
+    }
+  }
+  if(isGusting && dustList.length < 120) {
+    dustList.push(makeDust());
+  }
+}
+
+function drawDust() {
+  dustList.forEach(d => {
+    pc.beginPath();
+    pc.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    pc.fillStyle = `rgba(255,255,255,${d.alpha * d.life * petalOpacity})`;
+    pc.fill();
+  });
+}
+
+// grass
+const grassBlades = [];
+let grassOpacity = 0;
+function initGrass() {
+  grassBlades.length = 0;
+  const count = Math.floor(pW / 5);
+  for(let i = 0; i < count; i++) {
+    const depth = Math.random();
+    grassBlades.push({
+      x: (i / count) * pW + (Math.random() - 0.5) * 10,
+      h: 40 + Math.random() * 60,
+      lean: (Math.random() - 0.5) * 0.4,
+      thick: 0.6 + Math.random() * 1.0,
+      alpha: (0.03 + Math.random() * 0.05) + depth * 0.38,
+      depth,
+      sway: Math.random() * Math.PI * 2,
+      swayAmt: 0.03 + Math.random() * 0.06,
+    });
+  }
+}
+initGrass();
+window.addEventListener('resize', () => { resizePetals(); initGrass(); });
+
+function drawGrass() {
+  if(grassOpacity < 1) grassOpacity = Math.min(1, grassOpacity + 0.004);
+  pc.save();
+  const windLean = windStrength * 0.05;
+  grassBlades.forEach(g => {
+    g.sway += 0.009;
+    const sway = Math.sin(g.sway) * g.swayAmt + windLean * g.depth;
+    const tipX = g.x + sway * g.h * 4 + g.lean * g.h;
+    const tipY = pH - g.h;
+    const midX = g.x + sway * g.h * 2;
+    const midY = pH - g.h * 0.55;
+    const a = g.alpha * grassOpacity;
+
+    // main stem
+    pc.beginPath();
+    pc.moveTo(g.x, pH);
+    pc.quadraticCurveTo(midX, midY, tipX, tipY);
+    pc.strokeStyle = `rgba(255,255,255,${a})`;
+    pc.lineWidth = g.thick;
+    pc.stroke();
+
+    // seed head — small elongated oval at tip
+    const headLen = g.h * 0.18;
+    const angle = Math.atan2(tipY - midY, tipX - midX);
+    pc.save();
+    pc.translate(tipX, tipY);
+    pc.rotate(angle + Math.PI / 2);
+    pc.beginPath();
+    pc.ellipse(0, 0, g.thick * 1.4, headLen, 0, 0, Math.PI * 2);
+    pc.fillStyle = `rgba(255,255,255,${a * 0.5})`;
+    pc.fill();
+    pc.strokeStyle = `rgba(255,255,255,${a * 0.7})`;
+    pc.lineWidth = 0.5;
+    pc.stroke();
+
+    // small barbs on seed head
+    for(let b = -2; b <= 2; b++) {
+      const bY = b * headLen * 0.3;
+      const bLen = headLen * 0.25;
+      pc.beginPath();
+      pc.moveTo(-g.thick, bY);
+      pc.lineTo(-bLen - g.thick, bY - bLen * 0.6);
+      pc.strokeStyle = `rgba(255,255,255,${a * 0.55})`;
+      pc.lineWidth = 0.5;
+      pc.stroke();
+      pc.beginPath();
+      pc.moveTo(g.thick, bY);
+      pc.lineTo(bLen + g.thick, bY - bLen * 0.6);
+      pc.strokeStyle = `rgba(255,255,255,${a * 0.55})`;
+      pc.lineWidth = 0.5;
+      pc.stroke();
+    }
+    pc.restore();
+  });
+  pc.restore();
+}
+
+function drawLeaf(p) {
+  pc.save();
+  pc.translate(p.x, p.y);
+  pc.rotate(p.rot);
+  pc.globalAlpha = p.alpha * petalOpacity;
+  const s = p.size;
+  const v = p.variant;
+  pc.beginPath();
+  if(v === 0) {
+    pc.moveTo(0, -s);
+    pc.bezierCurveTo(s * 0.55, -s * 0.35, s * 0.55, s * 0.35, 0, s);
+    pc.bezierCurveTo(-s * 0.55, s * 0.35, -s * 0.55, -s * 0.35, 0, -s);
+  } else if(v === 1) {
+    pc.moveTo(0, -s);
+    pc.bezierCurveTo(s * 0.8, -s * 0.2, s * 0.4, s * 0.5, 0, s);
+    pc.bezierCurveTo(-s * 0.3, s * 0.4, -s * 0.3, -s * 0.4, 0, -s);
+  } else if(v === 2) {
+    pc.moveTo(0, -s * 0.6);
+    pc.bezierCurveTo(s * 0.9, -s * 0.1, s * 0.7, s * 0.5, 0, s * 0.7);
+    pc.bezierCurveTo(-s * 0.7, s * 0.5, -s * 0.9, -s * 0.1, 0, -s * 0.6);
+  } else {
+    pc.moveTo(0, -s * 1.2);
+    pc.bezierCurveTo(s * 0.3, -s * 0.4, s * 0.3, s * 0.4, 0, s * 1.2);
+    pc.bezierCurveTo(-s * 0.3, s * 0.4, -s * 0.3, -s * 0.4, 0, -s * 1.2);
+  }
+  pc.fillStyle = 'rgba(255,255,255,0.12)';
+  pc.fill();
+  pc.strokeStyle = 'rgba(255,255,255,0.22)';
+  pc.lineWidth = 0.7;
+  pc.stroke();
+  pc.beginPath();
+  pc.moveTo(0, -s * 0.8);
+  pc.lineTo(0, s * 0.8);
+  pc.strokeStyle = 'rgba(255,255,255,0.07)';
+  pc.lineWidth = 0.4;
+  pc.stroke();
+  pc.restore();
+}
+
+function drawTwig(p) {
+  pc.save();
+  pc.translate(p.x, p.y);
+  pc.rotate(p.rot);
+  pc.globalAlpha = p.alpha * petalOpacity;
+  pc.strokeStyle = 'rgba(255,255,255,0.18)';
+  pc.lineWidth = 0.6;
+  const l = p.len;
+  pc.beginPath();
+  pc.moveTo(0, -l * 0.5);
+  pc.lineTo(0, l * 0.5);
+  pc.stroke();
+  for(let b = 0; b < p.branches; b++) {
+    const by = -l * 0.1 + (b * l * 0.3);
+    const blen = l * 0.3 + Math.random() * l * 0.15;
+    const bdir = b % 2 === 0 ? 1 : -1;
+    pc.beginPath();
+    pc.moveTo(0, by);
+    pc.lineTo(bdir * blen * 0.7, by - blen * 0.6);
+    pc.stroke();
+  }
+  pc.restore();
+}
+
+function animPetals() {
+  pc.clearRect(0, 0, pW, pH);
+  if(petalOpacity < 1) petalOpacity = Math.min(1, petalOpacity + 0.0015);
+  updateWind();
+  updateDust();
+
+  // trim excess leaves during calm
+  if(!isGusting && petalList.length > 34) petalList.splice(34);
+
+  petalList.forEach((p, i) => {
+    p.sway += p.swaySpeed;
+    p.x += p.speedX + Math.sin(p.sway) * 0.35 + windStrength * (p.depth || 0.5);
+    p.y += p.speedY;
+    p.rot += p.rotSpeed + windStrength * 0.015;
+    if(p.type === 'leaf') drawLeaf(p);
+    else drawTwig(p);
+    if(p.y > pH + 20 || p.x < -60 || p.x > pW + 60) {
+      petalList[i] = Math.random() < 0.2 ? makeTwig() : makePetal();
+    }
+  });
+
+  drawDust();
+  drawGrass();
+  requestAnimationFrame(animPetals);
+}
+animPetals();
 
 window.addEventListener('load', runBoot);
 </script>
