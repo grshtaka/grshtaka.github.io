@@ -1,16 +1,572 @@
 <!DOCTYPE html>
-<!--
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE GARDEN</title>
+<style>
+@font-face {
+  font-family: "BIOS";
+  src: url("https://grshtaka.github.io/SSaS/dos.ttf");
+}
 
--->
-<html>
-    <head>
-        <title>ICMS</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" href="icon.png" type="image/png" sizes="32x32">
-        <link rel="stylesheet" href="SSaS/icmssupreme.css">
-    </head>
-    <body style="background-color: black;">
-        <pre id="boot"></pre>
-        <script src="SSaS/script.js"></script>
-    </body>
+::-webkit-scrollbar { width: 16px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #fff; }
+
+::selection { background: white; color: black; }
+::-moz-selection { background: white; color: black; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: #000;
+  color: white;
+  font-family: "BIOS";
+  font-size: 20px;
+  margin: 0;
+  padding: 3vh;
+  min-height: 100vh;
+  cursor: none;
+}
+
+a {
+  color: white;
+  font-family: "BIOS";
+  font-size: 20px;
+  margin: 0; padding: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+a:hover { color: black; background-color: white; transition-delay: 100ms; }
+
+pre {
+  color: white;
+  font-family: "BIOS";
+  font-size: 20px;
+  margin: 0; padding: 0;
+  white-space: pre-wrap;
+}
+pre::selection { background: white; color: black; }
+
+hr { margin: 0; padding: 0; border: 2px solid white; }
+
+/* CRT */
+html::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 101;
+  background-image: repeating-linear-gradient(
+    rgba(255,0,0,0.12) 9px,
+    rgba(0,255,0,0.07) 10px,
+    rgba(0,0,255,0.03) 25px
+  );
+  opacity: 0.6;
+  animation: crt-static 2.7s steps(53) infinite, crt-flicker 0.25s infinite;
+}
+html::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background:
+    linear-gradient(rgba(0,0,0,0) 40%, rgba(0,0,0,0.25) 30%),
+    linear-gradient(90deg, rgba(255,0,0,0.05), rgba(0,255,0,0.03), rgba(0,0,255,0.05)),
+    radial-gradient(ellipse at center, rgba(255,255,255,0.12) 10%, rgba(255,255,255,0) 80%);
+  background-size: 100% 4px, 9px 100%;
+  transform: perspective(500px) scale(1.04);
+  transform-origin: center;
+  box-shadow:
+    inset 0 0 5vh rgba(255,255,255,0.65),
+    inset 0 0 220px rgba(0,0,0,0.6),
+    inset 0 0 50vw rgba(0,0,0,0.45),
+    inset 0 0 8vw rgba(255,255,255,0.08);
+}
+@keyframes crt-flicker { 0%{opacity:.12} 50%{opacity:.16} 100%{opacity:.14} }
+@keyframes crt-static { 0%{background-position:0 -2000px} 100%{background-position:0 1500px} }
+
+/* cursor */
+#cursor {
+  position: fixed;
+  width: 10px; height: 20px;
+  background: white;
+  pointer-events: none;
+  z-index: 9999;
+  animation: blink-cur 1s step-end infinite;
+  transform: translate(-1px, -2px);
+}
+@keyframes blink-cur { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* screens */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* BOOT */
+#boot.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 90vh;
+}
+.boot-line {
+  font-family: "BIOS";
+  font-size: 20px;
+  color: white;
+  opacity: 0;
+  margin-bottom: 2px;
+  transition: opacity .1s;
+}
+.boot-line.lit { opacity: 1; }
+#boot-title {
+  font-family: "BIOS";
+  font-size: 48px;
+  color: white;
+  margin: 4vh 0 1vh;
+  opacity: 0;
+}
+#boot-sub {
+  font-family: "BIOS";
+  font-size: 16px;
+  color: #888;
+  opacity: 0;
+  margin-bottom: 5vh;
+}
+#boot-enter {
+  display: inline-block;
+  font-family: "BIOS";
+  font-size: 20px;
+  color: white;
+  border: 2px solid white;
+  padding: 8px 24px;
+  cursor: pointer;
+  opacity: 0;
+  width: fit-content;
+}
+#boot-enter.ready { animation: blink-btn 1.2s step-end infinite; }
+#boot-enter:hover { color: black; background: white; }
+@keyframes blink-btn { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* DASH */
+.dash-header { margin-bottom: 3vh; }
+.dash-header pre { margin-bottom: 4px; }
+.intro-text {
+  font-family: "BIOS";
+  font-size: 18px;
+  color: #ccc;
+  line-height: 2;
+  margin: 3vh 0;
+  padding-left: 2vw;
+  border-left: 2px solid white;
+}
+.file-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2vh;
+}
+.file-table tr { border-bottom: 1px solid #222; cursor: pointer; }
+.file-table tr:hover td { background: white; color: black; }
+.file-table td {
+  font-family: "BIOS";
+  font-size: 20px;
+  padding: 8px 12px 8px 0;
+  color: white;
+}
+.col-idx { color: #444; width: 48px; }
+.file-table tr:hover .col-idx { color: black; }
+.col-kind { color: #555; text-align: right; font-size: 16px; }
+.file-table tr:hover .col-kind { color: black; }
+
+/* READER */
+.reader-nav {
+  margin-bottom: 3vh;
+  display: flex;
+  gap: 3vw;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.reader-path {
+  margin-left: auto;
+  font-size: 14px;
+  color: #444;
+  font-family: "BIOS";
+}
+.reader-fname { font-family: "BIOS"; font-size: 14px; color: #444; margin-bottom: 1vh; }
+.reader-heading { font-family: "BIOS"; font-size: 36px; color: white; margin-bottom: 8px; }
+.reader-kind { font-family: "BIOS"; font-size: 16px; color: #666; margin-bottom: 4vh; display: block; }
+
+.reader-body {
+  font-family: "BIOS";
+  font-size: 20px;
+  color: white;
+  line-height: 2.1;
+  overflow-y: auto;
+  max-height: 65vh;
+  padding-right: 1vw;
+}
+.reader-body::-webkit-scrollbar { width: 16px; }
+.reader-body::-webkit-scrollbar-track { background: #000; }
+.reader-body::-webkit-scrollbar-thumb { background: #fff; }
+
+.verse-stanza { margin-bottom: 2em; }
+.verse-line {
+  display: block;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+.verse-line.show { opacity: 1; transform: none; }
+.refrain {
+  display: block;
+  color: #777;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity .4s ease, transform .4s ease;
+  margin: 2px 0;
+}
+.refrain.show { opacity: 1; transform: none; }
+
+.reader-footer {
+  margin-top: 4vh;
+  padding-top: 2vh;
+  border-top: 2px solid white;
+  display: flex;
+}
+.footer-btn {
+  font-family: "BIOS";
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.footer-btn:hover { color: black; background: white; }
+.footer-right { margin-left: auto; }
+
+/* STATUS */
+#statusbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 6px 3vh;
+  font-family: "BIOS";
+  font-size: 14px;
+  color: #333;
+  border-top: 1px solid #111;
+  background: #000;
+  z-index: 50;
+  display: flex;
+  gap: 4vw;
+}
+#statusbar .live { color: #666; }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- BOOT -->
+<div id="boot" class="screen active">
+  <div id="boot-lines"></div>
+  <div id="boot-title">THE GARDEN</div>
+  <div id="boot-sub">a place where things come to remain</div>
+  <div id="boot-enter">[ ENTER THE GARDEN ]</div>
+</div>
+
+<!-- DASH -->
+<div id="dash" class="screen">
+  <div class="dash-header">
+    <pre>C:\GARDEN -- WELCOME</pre>
+    <hr style="margin: 8px 0;">
+    <pre>THE GARDEN OF MIRRORS</pre>
+    <hr style="margin: 8px 0 0;">
+  </div>
+
+  <div class="intro-text">
+    This is a place where I gather the fragments --<br>
+    dreams, symbols, thoughts, and the moments that feel more real than reality itself.<br><br>
+    A place to track the patterns that move beneath the surface of ordinary life<br>
+    and to observe the mind the way a smith studies metal:<br>
+    heating it, folding it, burning away what doesn't belong,<br>
+    and shaping what remains into something precise.
+  </div>
+
+  <hr style="margin: 2vh 0 1vh;">
+  <pre style="color:#444; font-size:16px; margin-bottom:1vh;">C:\GARDEN\MEMORY\</pre>
+
+  <table class="file-table" id="file-table"></table>
+
+  <hr style="margin-top:3vh;">
+  <pre style="color:#222; font-size:14px; margin-top:8px;">[ END OF DIRECTORY ]</pre>
+</div>
+
+<!-- READER -->
+<div id="reader" class="screen">
+  <div class="reader-nav">
+    <a id="back-btn">[ BACK ]</a>
+    <a id="dash-btn">[ DASHBOARD ]</a>
+    <span class="reader-path" id="reader-path">C:\GARDEN\--</span>
+  </div>
+  <hr style="margin-bottom: 3vh;">
+  <div class="reader-fname" id="reader-fname"></div>
+  <div class="reader-heading" id="reader-heading"></div>
+  <span class="reader-kind" id="reader-kind"></span>
+  <div class="reader-body" id="reader-body"></div>
+  <div class="reader-footer">
+    <span class="footer-btn" id="prev-btn"></span>
+    <span class="footer-btn footer-right" id="next-btn"></span>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div id="statusbar">
+  <span class="live" id="status-file">NO FILE OPEN</span>
+  <span id="status-time"></span>
+  <span style="margin-left:auto;">THE WORLD CONTINUES ELSEWHERE</span>
+</div>
+
+<script>
+const FILES = [
+  {
+    name:'CLUE1.TXT', heading:'CLUE1.TXT', kind:'[ COSMOGONY ]',
+    path:'C:\\GARDEN\\CLUE1.TXT',
+    content:[
+      {t:'line',text:'As the four stood silent to each one'},
+      {t:'line',text:'Their looks intertwined'},
+      {t:'line',text:'The land reached its hand for the skies'},
+      {t:'line',text:'Not a breath to spare, the depths had given to the chase'},
+      {t:'line',text:'Racing one another, who will be the first to wonder'},
+      {t:'stanza'},
+      {t:'line',text:'Celestial dome came down for the show'},
+      {t:'line',text:'One being split into two'},
+      {t:'line',text:'Each facing their own reflection, looking in'},
+      {t:'stanza'},
+      {t:'line',text:"They've begun to sing, countless others joined in"},
+      {t:'line',text:'A chorus so powerful, so loud'},
+      {t:'line',text:'Structure so violent, so profound'},
+      {t:'stanza'},
+      {t:'line',text:"In their nooks and crannies they've birthed a new mind"},
+      {t:'line',text:'Resting upon others safe and sound'},
+    ]
+  },
+  {
+    name:'CLUE2.TXT', heading:'CLUE2.TXT', kind:'[ MYTH ]',
+    path:'C:\\GARDEN\\CLUE2.TXT',
+    content:[
+      {t:'line',text:'The battle, locked still'},
+      {t:'line',text:'Neither side with a moving will'},
+      {t:'line',text:'In that moment, decision was his'},
+      {t:'line',text:'To plunge unto chest the sword of Ishis'},
+      {t:'stanza'},
+      {t:'line',text:'With such actions things were set into motion'},
+      {t:'line',text:'Divine beings thrown into commotion'},
+      {t:'line',text:'Eyegaze upon the thread unveiled'},
+      {t:'line',text:'Three rushed into battle with no moment to spare'},
+      {t:'stanza'},
+      {t:'line',text:'He and she adored the awe'},
+      {t:'line',text:'With no words coming from his mouth shut'},
+      {t:'line',text:'Through every valley, tree and rock'},
+      {t:'line',text:'Even the sky above overlooking'},
+      {t:'stanza'},
+      {t:'line',text:'With his voice in all, shuddered'},
+      {t:'line',text:'Her eyes frozen in fear'},
+      {t:'line',text:'To no avail is escape near'},
+      {t:'stanza'},
+      {t:'line',text:'Gentle breeze upon the desert dunes'},
+      {t:'line',text:'Every touch, poison or blessing as such'},
+      {t:'line',text:'His hand her mind'},
+      {t:'line',text:'Her soul his heart'},
+    ]
+  },
+  {
+    name:'MALFORMATION.TXT', heading:'MALFORMATION.TXT', kind:'[ SHADOW ]',
+    path:'C:\\GARDEN\\MALFORMATION.TXT',
+    content:[
+      {t:'line',text:'My form, ethereal it was supposed to be'},
+      {t:'line',text:'These hands, to build they were looking'},
+      {t:'line',text:'But all I see is weaving of black smoke'},
+      {t:'line',text:'Dispute of purple lightning and flames'},
+      {t:'stanza'},
+      {t:'line',text:'Sharp claws have grown, scales upon scales'},
+      {t:'line',text:'No longer is there wish to learn, no longer is there wish to know'},
+      {t:'stanza'},
+      {t:'line',text:'Only malice, only destruction'},
+      {t:'line',text:'To rip apart, to tear the awe'},
+      {t:'stanza'},
+      {t:'line',text:"For pain I've learnt, pain I will cast upon"},
+    ]
+  },
+  {
+    name:'MEMORY.TXT', heading:'MEMORY.TXT', kind:'[ DREAM / RETURN ]',
+    path:'C:\\GARDEN\\MEMORY.TXT',
+    content:[
+      {t:'line',text:"Through distant planes, again you've come to me"},
+      {t:'line',text:'Standing tall and proud, enveloped by a dark shroud'},
+      {t:'line',text:'Your visage -- was it hair or snakes living?'},
+      {t:'line',text:"Eyes dark as coal, into my soul, they're peering"},
+      {t:'stanza'},
+      {t:'line',text:'Such terror, such fear, I could not stand to be near'},
+      {t:'line',text:'Frightened, I closed my eyes and wished not to see'},
+      {t:'line',text:'Turned my back to you, to scream, to flee'},
+      {t:'line',text:'But even with my eyes closed, I saw yours looking back at me'},
+      {t:'stanza'},
+      {t:'refrain',text:'Sahte enli amar'},
+      {t:'refrain',text:'Sahte enli amar'},
+      {t:'stanza'},
+      {t:'line',text:'Never averting her gaze, flaming eyes gleaming with vigor'},
+      {t:'line',text:'To me it was a trigger'},
+      {t:'line',text:'Memories future and past, every moment that was us'},
+      {t:'stanza'},
+      {t:'line',text:'It flashed: Before time, was you and me'},
+      {t:'line',text:'Every touch, taste, smell and sound'},
+      {t:'line',text:'To you forever has made me bound'},
+      {t:'line',text:"Your mind, soul and body, the only I've ever known"},
+      {t:'stanza'},
+      {t:'refrain',text:'Sahte enli amar'},
+      {t:'stanza'},
+      {t:'line',text:'As I stood up and turned to face you'},
+      {t:'line',text:'Fear was there no more. Replaced by longing'},
+      {t:'line',text:'Pressing your lips against mine, a familiar moment'},
+      {t:'line',text:'Divine'},
+      {t:'stanza'},
+      {t:'refrain',text:'Sahte enli amar'},
+      {t:'refrain',text:'Sahte enli amar'},
+      {t:'refrain',text:'Sahte enli amar'},
+      {t:'stanza'},
+      {t:'line',text:'I am with you, echoed through our mind'},
+    ]
+  },
+];
+
+// cursor
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top = e.clientY + 'px';
+});
+
+// time
+function tick() {
+  const n = new Date();
+  document.getElementById('status-time').textContent =
+    [n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+}
+setInterval(tick,1000); tick();
+
+// screens
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// boot
+const BOOT_LINES = [
+  'THE GARDEN v0.1.0',
+  'INITIALIZING...',
+  'LOADING MEMORY FRAGMENTS...',
+  'CALIBRATING PATTERN ENGINE...',
+  'SHADOW ARCHIVE: MOUNTED',
+  'DREAM BUFFER: READY',
+  '> ALL SYSTEMS NOMINAL.',
+];
+function runBoot() {
+  const c = document.getElementById('boot-lines');
+  let i = 0;
+  function step() {
+    if(i >= BOOT_LINES.length) {
+      setTimeout(()=>{
+        document.getElementById('boot-title').style.opacity='1';
+        setTimeout(()=>{
+          document.getElementById('boot-sub').style.opacity='1';
+          setTimeout(()=>{
+            const btn = document.getElementById('boot-enter');
+            btn.style.opacity='1';
+            btn.classList.add('ready');
+          },500);
+        },300);
+      },400);
+      return;
+    }
+    const el = document.createElement('div');
+    el.className='boot-line';
+    el.textContent=BOOT_LINES[i];
+    c.appendChild(el);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('lit')));
+    i++;
+    setTimeout(step,200);
+  }
+  step();
+}
+document.getElementById('boot-enter').addEventListener('click',()=>{
+  show('dash'); buildTable();
+  document.getElementById('status-file').textContent='THE GARDEN -- BROWSING';
+});
+
+// table
+function buildTable() {
+  const t = document.getElementById('file-table');
+  if(t.children.length) return;
+  FILES.forEach((f,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`<td class="col-idx">${String(i+1).padStart(2,'0')}</td><td>${f.name}</td><td class="col-kind">${f.kind}</td>`;
+    tr.addEventListener('click',()=>openFile(i));
+    t.appendChild(tr);
+  });
+}
+
+// reader
+let cur_idx = 0;
+function openFile(idx) {
+  cur_idx = idx;
+  const f = FILES[idx];
+  show('reader');
+  document.getElementById('reader-path').textContent = f.path;
+  document.getElementById('reader-fname').textContent = f.name;
+  document.getElementById('reader-heading').textContent = f.heading;
+  document.getElementById('reader-kind').textContent = f.kind;
+  document.getElementById('status-file').textContent = f.name + ' -- OPEN';
+
+  const body = document.getElementById('reader-body');
+  body.innerHTML='';
+  let stanza = document.createElement('div');
+  stanza.className='verse-stanza';
+  f.content.forEach(item=>{
+    if(item.t==='stanza'){
+      if(stanza.children.length) body.appendChild(stanza);
+      stanza=document.createElement('div');
+      stanza.className='verse-stanza';
+    } else {
+      const span=document.createElement('span');
+      span.className = item.t==='refrain' ? 'refrain' : 'verse-line';
+      span.textContent=item.text;
+      stanza.appendChild(span);
+    }
+  });
+  if(stanza.children.length) body.appendChild(stanza);
+
+  setTimeout(()=>{
+    body.querySelectorAll('.verse-line,.refrain').forEach((el,i)=>{
+      setTimeout(()=>el.classList.add('show'), i*70);
+    });
+  },100);
+
+  const prev = document.getElementById('prev-btn');
+  const next = document.getElementById('next-btn');
+  prev.textContent = idx>0 ? '[ < '+FILES[idx-1].name+' ]' : '';
+  next.textContent = idx<FILES.length-1 ? '[ '+FILES[idx+1].name+' > ]' : '';
+  prev.onclick = idx>0 ? ()=>openFile(idx-1) : null;
+  next.onclick = idx<FILES.length-1 ? ()=>openFile(idx+1) : null;
+}
+
+document.getElementById('back-btn').addEventListener('click',()=>{
+  show('dash');
+  document.getElementById('status-file').textContent='THE GARDEN -- BROWSING';
+});
+document.getElementById('dash-btn').addEventListener('click',()=>{
+  show('dash');
+  document.getElementById('status-file').textContent='THE GARDEN -- BROWSING';
+});
+
+window.addEventListener('load', runBoot);
+</script>
+</body>
 </html>
