@@ -9,11 +9,12 @@
 
   /* section -> bloom css var + small sigil */
   const SECTION = {
-    ABOUT:     { varName: '--bloom-about',     sig: '❖' },
-    COSMOGONY: { varName: '--bloom-cosmogony', sig: '✦' },
-    MYTH:      { varName: '--bloom-myth',      sig: '✸' },
-    SHADOW:    { varName: '--bloom-shadow',    sig: '✷' },
-    DREAM:     { varName: '--bloom-dream',     sig: '❂' },
+    ABOUT:     { varName: '--bloom-about',     sig: '❖', flower: '❀' },
+    COSMOGONY: { varName: '--bloom-cosmogony', sig: '✦', flower: '✦' },
+    MYTH:      { varName: '--bloom-myth',      sig: '✸', flower: '✸' },
+    SHADOW:    { varName: '--bloom-shadow',    sig: '✷', flower: '✺' },
+    DREAM:     { varName: '--bloom-dream',     sig: '❂', flower: '❂' },
+    SIGN:      { varName: '--bloom-sign',      sig: '※', flower: '✲' },
   };
 
   const rootStyle = getComputedStyle(document.documentElement);
@@ -21,7 +22,10 @@
     const s = SECTION[kind] || SECTION.ABOUT;
     return rootStyle.getPropertyValue(s.varName).trim() || '#9bb08a';
   }
-  function sigil(kind) { return (SECTION[kind] || SECTION.ABOUT).sig; }
+  function sigil(kind)   { return (SECTION[kind] || SECTION.ABOUT).sig; }
+  function flower(kind)  { return (SECTION[kind] || SECTION.ABOUT).flower; }
+  // a library sign carries its own `color`; a garden story uses its section bloom
+  function entryBloom(e) { return (e && e.color) || bloomHex(e.kind); }
   function hexToHue(hex) {
     const m = hex.replace('#', '');
     const v = m.length === 3 ? m.split('').map(c => c + c).join('') : m;
@@ -75,64 +79,84 @@
   }
   function tick() {
     const n = new Date();
-    $('status-time').textContent = [n.getHours(), n.getMinutes(), n.getSeconds()]
-      .map(x => String(x).padStart(2, '0')).join(':');
+    const t = [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => String(x).padStart(2, '0')).join(':');
+    $('status-time').textContent = t;
+    const dt = $('door-time'); if (dt) dt.textContent = 'T+' + t;
   }
   setInterval(tick, 1000); tick();
 
-  /* ---- boot ---- */
-  const BOOT_LINES = [
-    'THE GARDEN v0.2.0',
-    'INITIALIZING...',
-    'LOADING MEMORY FRAGMENTS...',
-    'CALIBRATING PATTERN ENGINE...',
-    'SHADOW ARCHIVE: MOUNTED',
-    'DREAM BUFFER: READY',
-    'BLOOM WEATHER: NOMINAL',
-    '> ALL SYSTEMS NOMINAL.',
+  /* ---- entrance · the archive door ---- */
+  const HANDSHAKE = [
+    '<span class="k">DIVISION</span> ·· THE MANIFOLD',
+    '<span class="k">CLEARANCE</span> · VISITOR &nbsp;&nbsp;&nbsp; <span class="k">GROWTH CYCLE</span> · 0x C.7',
+    '&gt; establishing handshake .......... <span class="ok">OK</span>',
+    '&gt; unsealing the manifold .......... <span class="grant">GRANTED</span>',
   ];
   function runBoot() {
-    const c = $('boot-lines'); let i = 0;
+    const meta = $('door-meta'); if (!meta) return;
+    meta.innerHTML = ''; let i = 0;
     (function step() {
-      if (i >= BOOT_LINES.length) {
-        setTimeout(() => {
-          $('boot-title').style.opacity = '1';
-          setTimeout(() => { $('boot-sub').style.opacity = '1'; }, 300);
-          setTimeout(() => { $('boot-prompt').classList.add('lit'); }, 700);
-        }, 400);
-        return;
-      }
-      const el = document.createElement('div');
-      el.className = 'boot-line'; el.textContent = BOOT_LINES[i];
-      c.appendChild(el);
-      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('lit')));
-      i++; setTimeout(step, 190);
+      if (i >= HANDSHAKE.length) { setTimeout(() => $('door').classList.add('lit'), 350); return; }
+      const d = document.createElement('div'); d.innerHTML = HANDSHAKE[i];
+      meta.appendChild(d); i++; setTimeout(step, 260);
     })();
   }
-  function enterGarden() {
-    show('dash'); buildDashboard(); clearBloom();
-    $('status-file').textContent = 'THE GARDEN -- BROWSING';
+  /* ---- the manifold lives on the door: choose a realm, it grows above the line ---- */
+  let collection = 'garden';
+  function pick(coll) {
+    collection = coll;
+    $('door').classList.add('lit', 'chosen');
+    $('ht-garden').classList.toggle('active', coll === 'garden');
+    $('ht-library').classList.toggle('active', coll === 'library');
+    const list = ENTRIES.filter(e => (e.collection || 'garden') === coll);
+    if (coll === 'library') renderShelf($('hub-stage'), list);
+    else renderBed($('hub-stage'), list);
+    $('hub-hint').textContent = coll === 'library'
+      ? 'draw a book to read the sign' : 'tend a bloom to open it';
   }
-  $('boot-title').addEventListener('click', enterGarden);
-  $('boot-prompt').addEventListener('click', enterGarden);
-
-  /* ---- dashboard ---- */
-  function buildDashboard() {
-    const t = $('file-table');
-    if (t.children.length) return;
-    ENTRIES.forEach((e, i) => {
-      const tr = document.createElement('tr');
-      tr.style.setProperty('--row-bloom', bloomHex(e.kind));
-      tr.innerHTML =
-        `<td class="col-idx">${String(i + 1).padStart(2, '0')}</td>` +
-        `<td class="col-sig">${sigil(e.kind)}</td>` +
-        `<td class="col-name">${e.name}</td>` +
-        `<td class="col-kind">[ ${e.kind} ]</td>`;
-      tr.addEventListener('click', () => openEntry(e.id, false));
-      t.appendChild(tr);
+  function idleArrival() {
+    $('door').classList.remove('chosen');
+    $('ht-garden').classList.remove('active');
+    $('ht-library').classList.remove('active');
+    $('hub-stage').innerHTML = '';
+    $('hub-hint').textContent = 'choose a realm';
+  }
+  function renderBed(stage, list) {
+    const stems = [60, 150, 96, 128, 74, 112, 84, 140];
+    let seeds = '';
+    for (let i = 0; i < 5; i++)
+      seeds += `<span class="bed-seed" style="left:${8 + Math.random() * 84}%;top:${8 + Math.random() * 40}%"></span>`;
+    stage.innerHTML = '<div class="bed">' + seeds + list.map((e, i) => {
+      const c = entryBloom(e);
+      return `<div class="bloom" data-id="${e.id}" style="--c:${c};--stem:${stems[i % stems.length]}px;">`
+        + `<div class="flower">${flower(e.kind)}</div>`
+        + `<div class="bname">${e.name.replace('.TXT', '')}</div>`
+        + `<div class="bkind">${(e.kind || '').toLowerCase()}</div>`
+        + `<div class="bdesc">${e.desc || ''}</div></div>`;
+    }).join('') + '</div>';
+    stage.querySelectorAll('.bloom').forEach(el => el.addEventListener('click', () => openEntry(el.dataset.id, true)));
+  }
+  function renderShelf(stage, list) {
+    const heights = [176, 150, 192, 160, 184, 144];
+    stage.innerHTML = '<div class="shelf-info" id="shelf-info"></div><div class="shelf">' + list.map((e, i) => {
+      const c = entryBloom(e);
+      return `<div class="book" data-id="${e.id}" data-name="${e.name}" data-desc="${e.desc || ''}" `
+        + `style="--c:${c};--h:${heights[i % heights.length]}px;"><div class="spine">${e.name}</div></div>`;
+    }).join('') + '</div>';
+    const info = stage.querySelector('#shelf-info');
+    stage.querySelectorAll('.book').forEach(el => {
+      const c = entryBloom(byId[el.dataset.id]);
+      el.addEventListener('mouseenter', () => {
+        info.innerHTML = `<span class="si-name" style="color:${c}">${el.dataset.name}</span>`
+          + `<span class="si-desc">${el.dataset.desc}</span>`;
+      });
+      el.addEventListener('mouseleave', () => { info.innerHTML = ''; });
+      el.addEventListener('click', () => openEntry(el.dataset.id, true));
     });
   }
-  $('dash-btn-manifold').addEventListener('click', e => { e.preventDefault(); openManifold(); });
+  $('ht-garden').addEventListener('click', e => { e.preventDefault(); pick('garden'); });
+  $('ht-library').addEventListener('click', e => { e.preventDefault(); pick('library'); });
+  $('hub-roots').addEventListener('click', e => { e.preventDefault(); openManifold(); });
 
   /* ---- vines / corners ---- */
   const CORNER = '╔═◈';
@@ -149,14 +173,19 @@
   let prevEntry = null, nextEntry = null;
 
   function openEntry(id, flip) {
-    const idx = ENTRIES.findIndex(e => e.id === id);
-    if (idx < 0) return;
+    const e = byId[id];
+    if (!e) return;
+    const idx = ENTRIES.indexOf(e);
     curIdx = idx;
-    const e = ENTRIES[idx];
-    prevEntry = ENTRIES[idx - 1] || null;
-    nextEntry = ENTRIES[idx + 1] || null;
+    // prev/next stay WITHIN the same collection — turning pages never crosses
+    // from a library sign into a garden story (or vice-versa)
+    const coll = e.collection || 'garden';
+    const sibs = ENTRIES.filter(x => (x.collection || 'garden') === coll);
+    const si = sibs.indexOf(e);
+    prevEntry = sibs[si - 1] || null;
+    nextEntry = sibs[si + 1] || null;
 
-    const hex = bloomHex(e.kind);
+    const hex = entryBloom(e);
     setBloom(hex, 0.32);
 
     show('reader');
@@ -196,15 +225,16 @@
     renderBlocks(e);
   }
 
-  /* breadcrumb: C:/GARDEN/LIBRARY/<NAME> — each segment navigates */
+  /* breadcrumb: C:/MANIFOLD/<COLLECTION>/<NAME> — each segment navigates */
   function buildBreadcrumb(e) {
+    const coll = e.collection || 'garden';
     const bc = $('breadcrumb');
     bc.innerHTML = '';
     const parts = [
-      { label: 'C:',      go: goHome },
-      { label: 'GARDEN',  go: backToDash },
-      { label: 'LIBRARY', go: backToDash },
-      { label: e.name,    current: true },
+      { label: 'C:',              go: goHome },
+      { label: 'MANIFOLD',        go: () => backToHub() },
+      { label: coll.toUpperCase(), go: () => backToHub(coll) },
+      { label: e.name,            current: true },
     ];
     parts.forEach((p, i) => {
       if (i) { const s = document.createElement('span'); s.className = 'sep'; s.textContent = '/'; bc.appendChild(s); }
@@ -392,13 +422,14 @@
     });
   })();
 
-  function backToDash() {
-    show('dash'); clearBloom();
-    $('status-file').textContent = 'THE GARDEN -- BROWSING';
+  function backToHub(coll) {
+    show('boot'); $('door').classList.add('lit'); clearBloom();
+    if (coll) pick(coll); else idleArrival();
+    $('status-file').textContent = 'THE MANIFOLD -- BROWSING';
   }
   function goHome() {
-    show('boot'); clearBloom();
-    $('status-file').textContent = 'THE GARDEN';
+    show('boot'); $('door').classList.add('lit'); idleArrival(); clearBloom();
+    $('status-file').textContent = 'THE MANIFOLD';
   }
 
   /* ---- roots map (full screen + embeddable widget) ---- */
@@ -430,12 +461,12 @@
   function nodeSpan(e) {
     const s = document.createElement('span');
     s.className = 'manifold-node';
-    s.style.setProperty('--node-bloom', bloomHex(e.kind));
+    s.style.setProperty('--node-bloom', entryBloom(e));
     s.textContent = sigil(e.kind) + ' ' + e.name.replace('.TXT', '');
     s.addEventListener('click', () => openEntry(e.id, true));
     return s;
   }
-  $('manifold-back').addEventListener('click', e => { e.preventDefault(); backToDash(); });
+  $('manifold-back').addEventListener('click', e => { e.preventDefault(); backToHub(); });
 
   /* ---- go ---- */
   addEventListener('load', runBoot);

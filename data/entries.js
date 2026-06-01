@@ -24,6 +24,8 @@ window.ENTRIES = [
     name: 'MIRRORS.TXT',
     heading: 'MIRRORS.TXT',
     kind: 'ABOUT',
+    collection: 'garden',
+    desc: 'the place itself — why these fragments are gathered',
     path: 'C:\\GARDEN\\MIRRORS.TXT',
     links: ['clue1', 'memory'],
     blocks: [
@@ -57,6 +59,8 @@ window.ENTRIES = [
     name: 'CLUE1.TXT',
     heading: 'CLUE1.TXT',
     kind: 'COSMOGONY',
+    collection: 'garden',
+    desc: 'the first splitting — how the many came from one',
     path: 'C:\\GARDEN\\CLUE1.TXT',
     links: ['clue2', 'memory'],
     blocks: [
@@ -96,6 +100,8 @@ window.ENTRIES = [
     name: 'CLUE2.TXT',
     heading: 'CLUE2.TXT',
     kind: 'MYTH',
+    collection: 'garden',
+    desc: 'the sword of Ishis and the war of divine beings',
     path: 'C:\\GARDEN\\CLUE2.TXT',
     links: ['clue1', 'malformation'],
     blocks: [
@@ -132,6 +138,8 @@ window.ENTRIES = [
     name: 'MALFORMATION.TXT',
     heading: 'MALFORMATION.TXT',
     kind: 'SHADOW',
+    collection: 'garden',
+    desc: 'the form that turned to claws and smoke',
     path: 'C:\\GARDEN\\MALFORMATION.TXT',
     links: ['memory', 'clue2'],
     blocks: [
@@ -157,6 +165,8 @@ window.ENTRIES = [
     name: 'MEMORY.TXT',
     heading: 'MEMORY.TXT',
     kind: 'DREAM',
+    collection: 'garden',
+    desc: 'a face returning across distant planes',
     path: 'C:\\GARDEN\\MEMORY.TXT',
     links: ['clue1', 'malformation'],
     // `bg` puts an image/gif behind the whole page, dimmed + vignetted so text reads
@@ -198,6 +208,58 @@ window.ENTRIES = [
         { t: 'stanza' },
         { t: 'line', text: 'I am with you, echoed through our mind' },
       ]},
+    ],
+  },
+
+  /* ============================================================
+     LIBRARY · the signs — a field guide to symbols/omens.
+     Same page structure as the stories. Each is a "book" on the
+     shelf: `color` sets the spine + the page's bloom, `desc` is the
+     one-line meaning shown on hover. Swap the placeholder lotus.gif
+     `src` for your own (e.g. assets/headlights.gif).
+     ============================================================ */
+  {
+    id: 'headlights',
+    name: 'HEADLIGHTS',
+    heading: 'HEADLIGHTS',
+    kind: 'SIGN',
+    collection: 'library',
+    color: '#e3c66a',
+    desc: 'ego flaring in the mirror — reconsider the road',
+    path: 'C:\\MANIFOLD\\LIBRARY\\HEADLIGHTS',
+    blocks: [
+      { t: 'image', src: 'assets/lotus.gif', cap: 'HEADLIGHTS // REARVIEW', treat: 'crt' },
+      { t: 'note', text: 'Lights swelling in the rearview: the ego, flaring, demanding to be seen. When they crowd the mirror, the urgency is yours -- not the road’s. Ease off. Reconsider the decision you are speeding toward.' },
+    ],
+  },
+
+  {
+    id: 'beetle',
+    name: 'BLACK BEETLE',
+    heading: 'BLACK BEETLE',
+    kind: 'SIGN',
+    collection: 'library',
+    color: '#46b89a',
+    desc: 'a dangerous choice nears — words and acts will carry',
+    path: 'C:\\MANIFOLD\\LIBRARY\\BEETLE',
+    blocks: [
+      { t: 'image', src: 'assets/lotus.gif', cap: 'BLACK BEETLE // TURNING', treat: 'crt' },
+      { t: 'note', text: 'A black beetle turning in place: you are nearing a dangerous choice. What is said and done here will not stay in the moment -- it will carry. Step with care; the small thing is not small.' },
+    ],
+  },
+
+  {
+    id: 'moth',
+    name: 'WHITE MOTH',
+    heading: 'WHITE MOTH',
+    kind: 'SIGN',
+    collection: 'library',
+    color: '#c9c1e6',
+    desc: 'drawn to a light not your own — name the longing',
+    path: 'C:\\MANIFOLD\\LIBRARY\\MOTH',
+    blocks: [
+      { t: 'image', src: 'assets/lotus.gif', cap: 'WHITE MOTH // TO THE LAMP', treat: 'crt' },
+      { t: 'note', text: 'A pale moth circling a lamp: a longing is pulling you toward a light that is not your own. Before you follow it in, name what you are really chasing -- warmth, or only the glare.' },
     ],
   },
 ];

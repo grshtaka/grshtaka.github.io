@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/garden.css?v=32">
+<link rel="stylesheet" href="css/garden.css?v=35">
 </head>
 <body>
 
@@ -18,28 +18,28 @@
 
 <div id="cursor"></div>
 
-<!-- BOOT -->
+<!-- ARRIVAL · the archive door = The Manifold + the choice -->
 <div id="boot" class="screen active">
-  <div id="boot-lines"></div>
-  <div id="boot-title">The Garden</div>
-  <div id="boot-sub">a place where things come to remain</div>
-  <div id="boot-prompt">&gt; PRESS TO ENTER</div>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dash" class="screen">
-  <div class="dash-header">
-    <div class="dash-kicker">C:\GARDEN -- WELCOME</div>
-    <div class="dash-title">The Manifold</div>
-    <div class="dash-actions">
-      <a href="#" id="dash-btn-manifold">[ THE ROOTS -- HOW PAGES CONNECT ]</a>
+  <div class="door" id="door">
+    <span class="corner tl">◤</span><span class="corner tr">◥</span>
+    <span class="corner bl">◣</span><span class="corner br">◢</span>
+    <div class="bar"><span>MANIFOLD ARCHIVE TERMINAL</span><span class="r" id="door-time">T+00:00:00</span></div>
+    <div class="door-body">
+      <div class="meta" id="door-meta"></div>
+      <div class="arrival-stage" id="arrival-stage">
+        <div class="wm black" id="door-title">The Manifold</div>
+        <div class="motto">THE STORE IN WHICH KNOWLEDGE IS KEPT</div>
+        <div class="hub-stage" id="hub-stage"></div>
+      </div>
+      <hr class="arrival-div">
+      <div class="hub-choose">
+        <a class="ht-btn" id="ht-garden">❧&nbsp; THE GARDEN</a>
+        <span class="ch-div">·</span>
+        <a class="ht-btn" id="ht-library">THE LIBRARY&nbsp; ❧</a>
+      </div>
+      <div class="hub-foot">— <span id="hub-hint">choose a realm</span> &nbsp;·&nbsp; descend to <a id="hub-roots">THE ROOTS ↓</a> —</div>
     </div>
   </div>
-  <hr>
-  <div class="dir-label">C:\GARDEN\</div>
-  <table class="file-table" id="file-table"></table>
-  <hr style="margin-top:3vh;">
-  <div class="dir-end">[ END OF DIRECTORY ]</div>
 </div>
 
 <!-- READER -->
@@ -82,8 +82,8 @@
   <span class="sb-right">THE WORLD CONTINUES ELSEWHERE</span>
 </div>
 
-<script src="data/entries.js?v=22"></script>
+<script src="data/entries.js?v=33"></script>
 <script src="js/atmosphere.js?v=12"></script>
-<script src="js/garden.js?v=30"></script>
+<script src="js/garden.js?v=35"></script>
 </body>
 </html>
