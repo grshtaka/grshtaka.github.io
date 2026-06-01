@@ -269,7 +269,7 @@ hr { border: none; border-top: 1px solid var(--line); }
   filter: brightness(0.5) contrast(1.05);
 }
 .codex.has-bg .codex-bg { opacity: 1; }
-.codex-bg::before {           /* hue-match: recolour the gif to the bloom (keeps its light/dark) */
+.codex-bg::before {           /* hue-match: recolour the gif to the bloom (keeps light/dark) */
   content: ''; position: absolute; inset: 0;
   background: var(--bloom); mix-blend-mode: color; opacity: 0.9;
 }

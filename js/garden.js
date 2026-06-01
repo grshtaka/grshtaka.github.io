@@ -22,6 +22,22 @@
     return rootStyle.getPropertyValue(s.varName).trim() || '#9bb08a';
   }
   function sigil(kind) { return (SECTION[kind] || SECTION.ABOUT).sig; }
+  function hexToHue(hex) {
+    const m = hex.replace('#', '');
+    const v = m.length === 3 ? m.split('').map(c => c + c).join('') : m;
+    const r = parseInt(v.slice(0, 2), 16) / 255,
+          g = parseInt(v.slice(2, 4), 16) / 255,
+          b = parseInt(v.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    let h = 0;
+    if (d) {
+      if (max === r) h = ((g - b) / d) % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h *= 60; if (h < 0) h += 360;
+    }
+    return h;
+  }
 
   /* ---- ambient weather ---- */
   function setBloom(hex, weight) {
@@ -153,10 +169,16 @@
     $('catch-next').textContent = nextEntry ? nextEntry.name : '';
     $('codex').dataset.side = '';
 
-    // optional page-background image/gif
+    // optional page-background image/gif — colourised to the bloom hue with a
+    // cheap filter (no mix-blend-mode, which was costing ~13fps over the gif)
     const bgEl = $('codex-bg');
-    if (e.bg) { bgEl.style.backgroundImage = 'url("' + e.bg + '")'; $('codex').classList.add('has-bg'); }
-    else { bgEl.style.backgroundImage = 'none'; $('codex').classList.remove('has-bg'); }
+    if (e.bg) {
+      bgEl.style.backgroundImage = 'url("' + e.bg + '")';
+      $('codex').classList.add('has-bg');
+    } else {
+      bgEl.style.backgroundImage = 'none';
+      $('codex').classList.remove('has-bg');
+    }
 
     // corners + vines
     $('codex-tl').textContent = CORNER;
