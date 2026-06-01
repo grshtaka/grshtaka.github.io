@@ -264,19 +264,27 @@ hr { border: none; border-top: 1px solid var(--line); }
 
 /* optional page background image/gif — dimmed + vignetted so text stays legible */
 .codex-bg {
-  position: absolute; inset: 0; z-index: 0; opacity: 0;
+  position: absolute; inset: 0; z-index: 0; opacity: 0; pointer-events: none;
   background-size: cover; background-position: center;
   filter: brightness(0.5) contrast(1.05);
 }
 .codex.has-bg .codex-bg { opacity: 1; }
-.codex-bg::before {           /* recolour the gif to the page's bloom hue */
+.codex-bg::before {           /* hue-match: recolour the gif to the bloom (keeps its light/dark) */
   content: ''; position: absolute; inset: 0;
   background: var(--bloom); mix-blend-mode: color; opacity: 0.9;
 }
-.codex-bg::after {            /* vignette: gif shows softly in the centre, dark at edges */
+.codex-bg::after {            /* vignette for legibility */
   content: ''; position: absolute; inset: 0;
   background: radial-gradient(ellipse at center,
               rgba(2,3,2,0.45) 0%, rgba(2,3,2,0.72) 70%, rgba(2,3,2,0.92) 100%);
+}
+/* PERF: keep the shadow-heavy text (and the gif) on their own GPU layers, so an
+   animating gif frame doesn't force the text to repaint. The blend itself is
+   cheap (~3fps); the layer isolation is what restores smoothness. */
+.codex.has-bg .codex-bg,
+.codex.has-bg .reader-body {
+  transform: translateZ(0);
+  will-change: transform;
 }
 /* keep all page content above the background layer */
 .codex-corner, .codex-vine { z-index: 2; }
