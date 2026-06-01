@@ -1,0 +1,205 @@
+- generic [active] [ref=e1]:
+  - text:     
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "SUPER ELEKTRIK Servis bele tehnike · Beograd · Žarkovo" [ref=e4] [cursor=pointer]:
+        - /url: index.html
+        - text: SUPER ELEKTRIK
+        - generic [ref=e5]: Servis bele tehnike · Beograd · Žarkovo
+      - button "Toggle navigation" [ref=e6] [cursor=pointer]
+  - generic [ref=e9]:
+    - navigation [ref=e10]:
+      - link "Početna" [ref=e11] [cursor=pointer]:
+        - /url: index.html
+      - text: ›
+      - link "Usluge" [ref=e12] [cursor=pointer]:
+        - /url: index.html#usluge
+      - text: ›Servis veš mašina
+    - heading "Servis Veš Mašina Beograd" [level=1] [ref=e13]
+    - paragraph [ref=e14]: Dolazimo na Vašu adresu · Žarkovo, Čukarica, Rakovica i ceo Beograd
+    - generic [ref=e15]:
+      - link "📞 064/40-88-145" [ref=e16] [cursor=pointer]:
+        - /url: tel:+381644088145
+      - link "Zakažite pregled →" [ref=e17] [cursor=pointer]:
+        - /url: "#kontakt"
+    - generic [ref=e18]:
+      - generic [ref=e19]: ⭐ 200+ Google recenzija
+      - generic [ref=e20]: 🔧 30+ godina iskustva
+      - generic [ref=e21]: 💰 Izlazak 2.000 din
+      - generic [ref=e22]: ✅ Garancija na popravku
+  - generic [ref=e24]:
+    - heading "Najčešći kvarovi koje popravljamo" [level=2] [ref=e25]
+    - paragraph [ref=e26]: Prepoznajete problem? Pozovite — besplatno procenjujemo telefonom.
+    - generic [ref=e27]:
+      - generic [ref=e29]:
+        - generic [ref=e30]: ⚙️
+        - generic [ref=e31]: Ležajevi / Semering
+        - generic [ref=e32]: Buka tokom centrifuge
+      - generic [ref=e34]:
+        - generic [ref=e35]: 💧
+        - generic [ref=e36]: Curi voda
+        - generic [ref=e37]: Guma vrata, creva, pumpa
+      - generic [ref=e39]:
+        - generic [ref=e40]: ⚡
+        - generic [ref=e41]: Elektronika
+        - generic [ref=e42]: Ne pali se, greška na displeju
+      - generic [ref=e44]:
+        - generic [ref=e45]: 🔄
+        - generic [ref=e46]: Ne centrifugira
+        - generic [ref=e47]: Motor, četkice, remen
+      - generic [ref=e49]:
+        - generic [ref=e50]: 🚿
+        - generic [ref=e51]: Ne prazni vodu
+        - generic [ref=e52]: Kvar pumpe, začepljen filter
+      - generic [ref=e54]:
+        - generic [ref=e55]: 🌡️
+        - generic [ref=e56]: Ne greje vodu
+        - generic [ref=e57]: Pregoreo grejač, kamenac
+      - generic [ref=e59]:
+        - generic [ref=e60]: 📳
+        - generic [ref=e61]: Jako vibrira
+        - generic [ref=e62]: Amortizeri, oslonci bubnja
+      - generic [ref=e64]:
+        - generic [ref=e65]: 🔒
+        - generic [ref=e66]: Bravica vrata
+        - generic [ref=e67]: Ne zaključava / ne otvara
+  - generic [ref=e70]:
+    - heading "Popravka Veš Mašina i Sušara u Beogradu" [level=2] [ref=e71]
+    - paragraph [ref=e72]:
+      - text: Pokvarena veš mašina može biti veliki problem za svako domaćinstvo. Umesto da kupujete novi uređaj, pozovite naš servis —
+      - strong [ref=e73]: Super Elektrik
+      - text: ima 30+ godina iskustva u popravci veš mašina svih brendova. Dolazimo direktno na Vašu adresu, a najčešće rešavamo kvar tokom iste posete.
+    - paragraph [ref=e74]:
+      - text: Izlazak naplaćujemo
+      - strong [ref=e75]: 2.000 din
+      - text: — ali ako popravka bude urađena, izlazak je uračunat u ukupnu cenu.
+    - heading "Detalji najčešćih kvarova" [level=3] [ref=e76]
+    - paragraph [ref=e77]:
+      - strong [ref=e78]: Trošenje ležajeva ili semeringova
+      - text: (~17% kvarova) prepoznajete po bučnom radu tokom centrifuge, naročito pri višim obrtajima. Uzrok je najčešće pranje sa previše veša.
+      - strong [ref=e79]: Propali amortizeri
+      - text: (~15%) dovode do toga da mašina vibrira i šeta po podu.
+    - paragraph [ref=e80]:
+      - strong [ref=e81]: Kvar elektronike
+      - text: je sve učestaliji na modernim mašinama. Uzrok je obično neispravan RSO filter ili fluktuacije napona.
+      - strong [ref=e82]: Istrošene četkice motora
+      - text: (~12%) dovode do toga da veš ostaje mokar jer mašina prestaje da centrifugira.
+    - heading "Brendovi koje servisujemo" [level=2] [ref=e83]
+    - generic [ref=e84]:
+      - generic [ref=e85]: Gorenje
+      - generic [ref=e86]: Bosch
+      - generic [ref=e87]: Indesit
+      - generic [ref=e88]: Ariston
+      - generic [ref=e89]: Candy
+      - generic [ref=e90]: Whirlpool
+      - generic [ref=e91]: Beko
+      - generic [ref=e92]: Samsung
+      - generic [ref=e93]: LG
+      - generic [ref=e94]: Electrolux
+      - generic [ref=e95]: AEG
+      - generic [ref=e96]: Zanussi
+      - generic [ref=e97]: Siemens
+      - generic [ref=e98]: Miele
+    - generic [ref=e99]:
+      - heading "Prepoznajete jedan od ovih kvarova?" [level=4] [ref=e100]
+      - paragraph [ref=e101]: Pozovite — besplatno procenjujemo kvar telefonom i dolazimo na Vašu adresu.
+      - link "📞 064/40-88-145" [ref=e102] [cursor=pointer]:
+        - /url: tel:+381644088145
+    - heading "Česta pitanja" [level=2] [ref=e103]
+    - generic [ref=e104]:
+      - generic [ref=e105] [cursor=pointer]:
+        - text: Zašto moja veš mašina jako vibrira i "šeta" po podu?
+        - generic [ref=e106]: +
+      - generic: Najčešći uzroci su istrošeni amortizeri ili oslonci bubnja. Može biti i neravnomerna raspodela veša u bubnju. Ako vibrira stalno bez obzira na punjenje — pozovite nas za pregled.
+    - generic [ref=e107]:
+      - generic [ref=e108] [cursor=pointer]:
+        - text: Zašto veš ostaje mokar posle centrifuge?
+        - generic [ref=e109]: +
+      - generic: Najčešće su u pitanju istrošene četkice motora ili kvar samog motora. Može biti i problem sa elektronikom. U oba slučaja je zamena jeftinija od kupovine nove mašine.
+    - generic [ref=e110]:
+      - generic [ref=e111] [cursor=pointer]:
+        - text: Koliko košta servis veš mašine?
+        - generic [ref=e112]: +
+      - generic: Cena zavisi od tipa kvara. Izlazak košta 2.000 din i uračunat je u cenu popravke ako je kvar rešen. Jednostavne popravke (četkice, pumpa, grejač) počinju od 1.500 din + delovi. Pozovite za grublu procenu pre dolaska.
+    - generic [ref=e113]:
+      - generic [ref=e114] [cursor=pointer]:
+        - text: Da li dolazite na adresu u celom Beogradu?
+        - generic [ref=e115]: +
+      - generic: Da, servisiramo ceo Beograd — Žarkovo, Čukarica, Rakovica, Novi Beograd, Zemun, Voždovac, Palilula i ostale opštine.
+  - generic [ref=e117]:
+    - generic [ref=e118]: Ostale usluge servisa
+    - generic [ref=e119]:
+      - link "🫧 Veš mašine" [ref=e120] [cursor=pointer]:
+        - /url: servis-ves-masina.html
+      - link "❄️ Frižideri" [ref=e121] [cursor=pointer]:
+        - /url: servis-frizidera.html
+      - link "🔥 Šporeti" [ref=e122] [cursor=pointer]:
+        - /url: servis-sporeta.html
+      - link "💧 Bojleri" [ref=e123] [cursor=pointer]:
+        - /url: servis-bojlera.html
+      - link "🌀 Usisivači" [ref=e124] [cursor=pointer]:
+        - /url: servis-usisivaca.html
+      - link "⚡ Varenje" [ref=e125] [cursor=pointer]:
+        - /url: servis-varenje-kazana.html
+  - generic [ref=e128]:
+    - generic [ref=e129]:
+      - heading "Zakažite Pregled" [level=2] [ref=e130]
+      - paragraph [ref=e131]: Pozovite ili pošaljite poruku
+      - generic [ref=e132]:
+        - generic [ref=e133]: Telefon
+        - link "064/40-88-145" [ref=e134] [cursor=pointer]:
+          - /url: tel:+381644088145
+        - link "011/2508-111" [ref=e135] [cursor=pointer]:
+          - /url: tel:+381112508111
+      - generic [ref=e136]:
+        - generic [ref=e137]: Adresa
+        - generic [ref=e138]: Đordja Ognjanovića 41, Žarkovo, Beograd
+      - generic [ref=e139]:
+        - generic [ref=e140]: Radno vreme
+        - generic [ref=e141]: "Pon–Pet: 09:00–19:20 | Sub: 09:00–15:00"
+    - generic [ref=e144]:
+      - textbox "Vaše ime *" [ref=e146]
+      - textbox "Broj telefona *" [ref=e148]
+      - textbox "Opišite kvar veš mašine (opciono)" [ref=e150]
+      - button "Pošaljite poruku" [ref=e152] [cursor=pointer]
+  - contentinfo [ref=e153]:
+    - generic [ref=e154]:
+      - generic [ref=e155]:
+        - generic [ref=e156]:
+          - generic [ref=e157]: SUPER ELEKTRIK
+          - generic [ref=e158]: Servis bele tehnike od 1990. · Beograd
+        - generic [ref=e159]:
+          - generic [ref=e160]:
+            - link "Usluge" [ref=e161] [cursor=pointer]:
+              - /url: index.html#usluge
+            - link "Cene" [ref=e162] [cursor=pointer]:
+              - /url: index.html#cene
+            - link "FAQ" [ref=e163] [cursor=pointer]:
+              - /url: index.html#faq
+            - link "Kontakt" [ref=e164] [cursor=pointer]:
+              - /url: "#kontakt"
+          - generic [ref=e165]:
+            - link "Veš mašine" [ref=e166] [cursor=pointer]:
+              - /url: servis-ves-masina.html
+            - link "Frižideri" [ref=e167] [cursor=pointer]:
+              - /url: servis-frizidera.html
+            - link "Bojleri" [ref=e168] [cursor=pointer]:
+              - /url: servis-bojlera.html
+            - link "Šporeti" [ref=e169] [cursor=pointer]:
+              - /url: servis-sporeta.html
+        - generic [ref=e170]:
+          - link "064/40-88-145" [ref=e171] [cursor=pointer]:
+            - /url: tel:+381644088145
+          - text: Đordja Ognjanovića 41, Žarkovo
+      - separator [ref=e172]
+      - paragraph [ref=e173]: © 2026 Super Elektrik. Sva prava zadržana.
+  - link "WhatsApp" [ref=e174] [cursor=pointer]:
+    - /url: https://wa.me/381644088145
+    - img [ref=e175]
+  - generic [ref=e177]:
+    - link " 064/40-88-145" [ref=e178] [cursor=pointer]:
+      - /url: tel:+381644088145
+      - generic [ref=e179]: 
+      - text: 064/40-88-145
+    - link "Zakažite →" [ref=e180] [cursor=pointer]:
+      - /url: "#kontakt"
