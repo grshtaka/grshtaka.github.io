@@ -130,14 +130,14 @@
       if (item.bar) { runBar(log, item, step); return; }
       const d = document.createElement('div');
       d.innerHTML = item.text === '' ? '&nbsp;' : item.text;
-      log.appendChild(d);
+      log.appendChild(d); log.scrollTop = log.scrollHeight;   // keep newest at the bottom (lines push up)
       setTimeout(step, (item.after || 110) + Math.random() * 60);
     })();
   }
   function runBar(log, item, done) {           // cmd-style box bar that fills to 100%
     const d = document.createElement('div'); d.className = 'bar-line';
-    log.appendChild(d);
-    const width = 22, dur = item.dur || 2000, t0 = performance.now();
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+    const width = (window.innerWidth < 640 ? 14 : 22), dur = item.dur || 2000, t0 = performance.now();
     (function tick() {
       const p = Math.min(1, (performance.now() - t0) / dur);
       const filled = Math.round(p * width);
@@ -162,7 +162,8 @@
     boot.dataset.phase = 'open';
     idleManifold();
   }
-  $('hero').addEventListener('click', openDoor);
+  $('hero').addEventListener('click', openDoor);   // the title opens the doors
+  $('gate').addEventListener('click', openDoor);   // ...and so do the doors themselves
 
   /* ---- THE MANIFOLD PAGE : choose a realm; it grows in, the rest gives way ---- */
   let collection = 'garden';
@@ -176,21 +177,22 @@
     $('boot').classList.remove('chosen');
     $('mp-title').textContent = 'THE MANIFOLD';
     $('ht-garden').classList.remove('active'); $('ht-library').classList.remove('active');
-    $('ht-garden').textContent = '❧  THE GARDEN';
-    $('ht-library').textContent = 'THE LIBRARY  ❧';
+    /* mark set via CSS */ void'❧  THE GARDEN';
+    /* mark set via CSS */ void'THE LIBRARY  ❧';
     $('hub-stage').innerHTML = '';
     $('hub-hint').textContent = 'choose a realm';
     buildMpBreadcrumb(null);
   }
   function pick(coll) {
+    if ($('boot').dataset.phase !== 'open') return;   // ignore realm clicks while the doors are still closed
     collection = coll;
     $('boot').classList.add('chosen');
     $('mp-title').textContent = coll === 'garden' ? 'THE GARDEN' : 'THE LIBRARY';
     const g = $('ht-garden'), l = $('ht-library');
     g.classList.toggle('active', coll === 'garden');
     l.classList.toggle('active', coll === 'library');
-    g.textContent = coll === 'garden' ? '✦  THE GARDEN' : '❧  THE GARDEN';
-    l.textContent = coll === 'library' ? 'THE LIBRARY  ✦' : 'THE LIBRARY  ❧';
+    /* mark set via CSS */ void coll === 'garden' ? void'✦  THE GARDEN' : '❧  THE GARDEN';
+    /* mark set via CSS */ void coll === 'library' ? void'THE LIBRARY  ✦' : 'THE LIBRARY  ❧';
     const active = coll === 'garden' ? g : l;
     active.classList.remove('blink'); void active.offsetWidth; active.classList.add('blink');
     const list = ENTRIES.filter(e => (e.collection || 'garden') === coll);

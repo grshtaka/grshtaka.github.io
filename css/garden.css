@@ -170,6 +170,9 @@ hr { border: none; border-top: 1px solid var(--line); }
 /* boot phase = the terminal centered in the viewport; door/open = stacked 100vh sections */
 #boot.active, #boot.leaving { position: relative; }
 #boot[data-phase="boot"]{ display:flex; align-items:center; justify-content:center; min-height:100vh; }
+/* the entrance (boot + closed door) doesn't scroll — only the opened hub scrolls down to the explanation */
+html:has(#boot.screen.active[data-phase="boot"]),
+html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 
 /* the hub is its own full-screen section; the explanation is the next screen below it */
 .hub-screen{ display:none; min-height:100vh; flex-direction:column; align-items:center; justify-content:flex-start; }
@@ -190,7 +193,8 @@ hr { border: none; border-top: 1px solid var(--line); }
   color:var(--gold); font-size:15px; letter-spacing:2px; }
 .terminal .bar .r{ color:var(--moss); }
 .terminal.powering-off{ animation: crt-off .6s ease forwards; transform-origin:center; }
-.bootlog{ padding:22px 32px 28px; min-height:344px; color:var(--moss);
+/* fixed-height console window: lines accumulate and push up off the top, like cmd */
+.bootlog{ padding:22px 32px 28px; height:340px; overflow:hidden; color:var(--moss);
   font-size:15px; line-height:1.6; letter-spacing:.5px; white-space:pre-wrap; }
 .bootlog .k{ color:var(--dim); } .bootlog .ok{ color:var(--fern); } .bootlog .grant{ color:var(--gold); }
 .bootlog .bar-line{ color:var(--sage); letter-spacing:0; }
@@ -222,13 +226,25 @@ hr { border: none; border-top: 1px solid var(--line); }
 /* the gate — full-width doors that part to reveal the realms beneath the (fixed) title */
 .gate{ position:relative; z-index:1; width:100%; max-width:920px; overflow:hidden; }
 #boot[data-phase="boot"] .gate{ display:none; }
+/* closed doors are just an ornament, only as tall as the choice behind them */
 #boot[data-phase="door"] .gate{ animation: crt-on .55s ease both; }
+/* shoji-style sliding doors: dim paper panels behind a wooden kumiko lattice, finger-pull at the seam */
 .gate .leaf{ position:absolute; top:0; bottom:0; width:50%; z-index:3; pointer-events:none;
-  background:linear-gradient(180deg, rgba(18,28,18,.96), rgba(2,4,2,.99));
-  box-shadow:inset 0 0 9vh rgba(0,0,0,.7);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 44px, color-mix(in srgb,var(--moss) 55%, transparent) 44px 46px),
+    repeating-linear-gradient(0deg,  transparent 0 44px, color-mix(in srgb,var(--moss) 55%, transparent) 44px 46px),
+    linear-gradient(180deg, rgba(40,52,34,.93), rgba(20,28,18,.96));
+  box-shadow: inset 0 0 0 5px color-mix(in srgb,var(--olive) 34%, #14110a),
+              inset 0 0 7vh rgba(0,0,0,.45);
   transition:transform .7s cubic-bezier(.6,.02,.3,1); }
-.gate .leaf.left{ left:0; border-right:1px solid color-mix(in srgb,var(--gold) 40%, var(--line)); }
-.gate .leaf.right{ right:0; border-left:1px solid color-mix(in srgb,var(--gold) 40%, var(--line)); }
+.gate .leaf.left{  left:0;  border-right:2px solid color-mix(in srgb,var(--olive) 52%, #14110a); }
+.gate .leaf.right{ right:0; border-left:2px solid color-mix(in srgb,var(--olive) 52%, #14110a); }
+/* hikite — the small recessed finger-pull beside the central seam */
+.gate .leaf::after{ content:""; position:absolute; top:50%; transform:translateY(-50%);
+  width:6px; height:30px; border-radius:3px; background:rgba(0,0,0,.45);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--olive) 45%, transparent); }
+.gate .leaf.left::after{  right:9px; }
+.gate .leaf.right::after{ left:9px; }
 #boot[data-phase="open"] .gate .leaf.left{ transform: translateX(-101%); }
 #boot[data-phase="open"] .gate .leaf.right{ transform: translateX(101%); }
 .gate-inner{ text-align:center; padding:1vh 3vw 2vh; }
@@ -245,15 +261,20 @@ hr { border: none; border-top: 1px solid var(--line); }
 
 /* ---------- THE HUB realm content (inside the gate) ---------- */
 /* the realm grows into the gap the rising title leaves (idle 0 -> picked ~30vh, matching the 34->4 rise) */
-.hub-stage{ position:relative; max-height:0; opacity:0; overflow:hidden;
-  transition:max-height .55s cubic-bezier(.6,.02,.3,1), opacity .45s ease; }
-#boot.chosen .hub-stage{ max-height:60vh; opacity:1; }   /* sizes to content (~284px); never clips */
+/* the stage grows by EXACTLY the title's rise (284px), in lockstep, so the choice never shifts */
+.hub-stage{ position:relative; height:0; opacity:0; overflow:hidden;
+  transition:height .55s cubic-bezier(.6,.02,.3,1), opacity .45s ease; }
+#boot.chosen .hub-stage{ height:284px; opacity:1; }
 .mp-line{ border:none; border-top:1px solid var(--line); margin:2.4vh auto; max-width:520px; }
 .hub-choose{ display:flex; justify-content:center; align-items:center; gap:24px;
   font-size:clamp(20px,3vw,26px); letter-spacing:2px; }
-.hub-choose .ht-btn{ color:var(--moss); cursor:none; transition:color .3s ease, text-shadow .3s ease; }
+.hub-choose .ht-btn{ display:inline-flex; align-items:center; gap:.55ch;
+  color:var(--moss); cursor:none; transition:color .3s ease, text-shadow .3s ease; }
 .hub-choose .ht-btn.active{ color:var(--sage); text-shadow:0 0 12px rgba(120,180,110,.55); }
-.hub-choose .ht-btn:hover{ text-decoration:underline; text-decoration-color:var(--sage); text-underline-offset:6px; }
+.hub-choose .ht-mark::before{ content:"\2767"; }                 /* ❧ */
+.hub-choose .ht-btn.active .ht-mark::before{ content:"\2726"; }  /* ✦ */
+.hub-choose .ht-btn:hover{ text-decoration:none; }   /* cancel the global a:hover underline */
+.hub-choose .ht-btn:hover .ht-label{ text-decoration:underline; text-decoration-color:var(--sage); text-underline-offset:6px; }
 .hub-choose .ht-btn.blink{ animation:blink .45s steps(2) 2; }
 .hub-choose .ch-div{ color:var(--dim); font-size:18px; }
 #boot.chosen .hub-choose .ht-btn:not(.active){ color:var(--dim); }
@@ -608,4 +629,36 @@ hr { border: none; border-top: 1px solid var(--line); }
   .widget.map .manifold-map { font-size: 15px; }
 
   .codex-foot { font-size: 13px; }
+
+  /* ---- the entrance / hub on mobile ---- */
+  .terminal{ max-width:100%; }
+  .terminal .bar{ font-size:12px; letter-spacing:1px; padding:8px 12px; }
+  .bootlog{ height:52vh; padding:14px 13px 18px; font-size:12px; line-height:1.55; }
+  .hub-crumb{ font-size:13px; top:1.1vh; left:4vw; z-index:6; }
+  .mp-title{ font-size:clamp(40px,14vw,62px); }
+  .enter-cue{ font-size:16px; letter-spacing:5px; }
+
+  /* idle title sits low; on pick it rises but stays clear of the breadcrumb */
+  .hero{ margin-top:30vh; }
+  #boot.chosen .hero{ margin-top:max(7vh, calc(30vh - 196px)); }
+
+  /* realm content scaled down to fit the mobile gap (so nothing is clipped) */
+  .stage-info{ height:42px; }
+  .stage-info .si-name{ font-size:16px; } .stage-info .si-desc{ font-size:12px; }
+  .bed, .shelf{ min-height:140px; }
+  .book{ height:calc(var(--h,170px) * .62); width:38px; }
+  .bloom{ width:64px; padding-bottom:calc(var(--stem) * .55); }
+  .bloom::after{ height:calc(var(--stem) * .55); }   /* stem matches the shortened bud height */
+  .bloom .flower{ font-size:28px; }
+  #boot.chosen .hub-stage{ height:196px; }
+
+  /* the choice: each realm on its own line, with its mark BELOW the label */
+  /* keep the two realms side by side (left / right); put each mark UNDER its label */
+  .hub-choose{ gap:22px; font-size:18px; letter-spacing:1px; align-items:flex-start; }
+  .hub-choose .ht-btn{ flex-direction:column; align-items:center; gap:3px; }
+  .hub-choose #ht-garden{ flex-direction:column-reverse; }  /* garden's mark is first in markup → flip so label stays on top */
+  .hub-choose .ch-div{ align-self:center; }
+  .hub-choose .ht-mark{ font-size:16px; }
+
+  .mp-desc{ font-size:20px; line-height:1.6; padding:3vh 6vw 8vh; }
 }
