@@ -220,7 +220,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 #boot[data-phase="door"] .enter-cue{ animation: blink 1.15s steps(2) infinite; }
 .hero:hover .enter-cue{ animation:none !important; opacity:1; }
 .mp-title{ font-family:"Pirata One","UnifrakturMaguntia",serif; color:var(--sage); line-height:1;
-  font-size:clamp(64px,11vw,128px);
+  font-size:clamp(72px,12vw,140px);
   text-shadow:0 0 16px rgba(120,180,110,.6),0 0 40px rgba(63,107,58,.36); }
 
 /* the gate — full-width doors that part to reveal the realms beneath the (fixed) title */
@@ -267,7 +267,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 #boot.chosen .hub-stage{ height:284px; opacity:1; }
 .mp-line{ border:none; border-top:1px solid var(--line); margin:2.4vh auto; max-width:520px; }
 .hub-choose{ display:flex; justify-content:center; align-items:center; gap:24px;
-  font-size:clamp(20px,3vw,26px); letter-spacing:2px; }
+  font-size:clamp(26px,3.9vw,34px); letter-spacing:2px; }
 .hub-choose .ht-btn{ display:inline-flex; align-items:center; gap:.55ch;
   color:var(--moss); cursor:none; transition:color .3s ease, text-shadow .3s ease; }
 .hub-choose .ht-btn.active{ color:var(--sage); text-shadow:0 0 12px rgba(120,180,110,.55); }
@@ -282,14 +282,14 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
   opacity:0; transition:opacity .4s ease; }
 #boot.chosen .mp-foot{ opacity:1; }
 /* hover placard: a framed library-card below the shelf, tinted to the hovered item's colour */
-.placard{ display:none; max-width:420px; margin:2.2vh auto 0; padding:13px 18px; text-align:left;
-  border:1px solid var(--line); background:rgba(120,170,110,.03); min-height:60px;
+.placard{ display:none; max-width:540px; margin:2.4vh auto 0; padding:18px 26px; text-align:left;
+  border:1px solid var(--line); background:rgba(120,170,110,.03); min-height:84px;
   box-shadow:inset 0 0 22px rgba(0,0,0,.35); transition:border-color .25s ease, background .25s ease; }
 #boot.chosen .placard{ display:block; }
-.placard .placard-name{ font-size:20px; letter-spacing:2px; padding-bottom:6px; margin-bottom:8px;
+.placard .placard-name{ font-size:28px; letter-spacing:2px; padding-bottom:8px; margin-bottom:10px;
   border-bottom:1px solid color-mix(in srgb, currentColor 35%, var(--line)); text-shadow:0 0 9px currentColor; }
-.placard .placard-desc{ color:var(--moss); font-size:15px; line-height:1.55; }
-.placard .placard-hint{ color:var(--dim); font-size:14px; opacity:.55; letter-spacing:1px; }
+.placard .placard-desc{ color:var(--moss); font-size:23px; line-height:1.6; }
+.placard .placard-hint{ color:var(--dim); font-size:16px; opacity:.55; letter-spacing:1px; }
 
 /* the explanation — its own full-screen section below the hub (scroll down -> it's right there at the top) */
 .mp-desc{ display:none; min-height:100vh; flex-direction:column; justify-content:flex-start; align-items:center;
@@ -662,7 +662,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
   .terminal .bar{ font-size:12px; letter-spacing:1px; padding:8px 12px; }
   .bootlog{ height:52vh; padding:14px 13px 18px; font-size:12px; line-height:1.55; }
   .hub-crumb{ font-size:13px; top:1.1vh; left:4vw; z-index:6; }
-  .mp-title{ font-size:clamp(40px,14vw,62px); }
+  .mp-title{ font-size:clamp(46px,15vw,70px); }
   .enter-cue{ font-size:16px; letter-spacing:5px; }
 
   /* idle title sits low; on pick it rises but stays clear of the breadcrumb */
@@ -681,7 +681,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 
   /* the choice: each realm on its own line, with its mark BELOW the label */
   /* keep the two realms side by side (left / right); put each mark UNDER its label */
-  .hub-choose{ gap:22px; font-size:18px; letter-spacing:1px; align-items:flex-start; }
+  .hub-choose{ gap:22px; font-size:22px; letter-spacing:1px; align-items:flex-start; }
   .hub-choose .ht-btn{ flex-direction:column; align-items:center; gap:3px; }
   .hub-choose #ht-garden{ flex-direction:column-reverse; }  /* garden's mark is first in markup → flip so label stays on top */
   .hub-choose .ch-div{ align-self:center; }
