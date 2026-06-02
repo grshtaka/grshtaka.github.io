@@ -50,7 +50,6 @@ window.ENTRIES = [
 "   >=====||\n" +
 "   >======|" },
       ]},
-      { t: 'widget', kind: 'map', label: 'THE ROOTS FROM HERE', focus: 'mirrors' },
     ],
   },
 
@@ -160,6 +159,9 @@ window.ENTRIES = [
     ],
   },
 
+  // ★ TEMPLATE PAGE — MEMORY is the staple example of how a page should look:
+  //   a background gif (`bg`), the verse/text with an illuminated drop-cap, page
+  //   chrome (C:/MANIFOLD/...), page-turn. Copy this shape for new entries.
   {
     id: 'memory',
     name: 'MEMORY.TXT',
@@ -249,17 +251,17 @@ window.ENTRIES = [
   },
 
   {
-    id: 'moth',
-    name: 'WHITE MOTH',
-    heading: 'WHITE MOTH',
+    id: 'feather',
+    name: 'FEATHER',
+    heading: 'FEATHER',
     kind: 'SIGN',
     collection: 'library',
-    color: '#c9c1e6',
-    desc: 'drawn to a light not your own — name the longing',
-    path: 'C:\\MANIFOLD\\LIBRARY\\MOTH',
+    color: '#e8d9a0',
+    desc: 'a feather on your path — you are going the right way',
+    path: 'C:\\MANIFOLD\\LIBRARY\\FEATHER',
     blocks: [
-      { t: 'image', src: 'assets/lotus.gif', cap: 'WHITE MOTH // TO THE LAMP', treat: 'crt' },
-      { t: 'note', text: 'A pale moth circling a lamp: a longing is pulling you toward a light that is not your own. Before you follow it in, name what you are really chasing -- warmth, or only the glare.' },
+      { t: 'image', src: 'assets/lotus.gif', cap: 'FEATHER // ON THE PATH', treat: 'crt' },
+      { t: 'note', text: 'A feather laid on your path: reassurance. The road you are on is the right one -- keep walking. What you have been doubting, you may trust a little more.' },
     ],
   },
 ];

@@ -6,8 +6,8 @@
 <title>THE GARDEN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/garden.css?v=35">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/garden.css?v=46">
 </head>
 <body>
 
@@ -18,28 +18,53 @@
 
 <div id="cursor"></div>
 
-<!-- ARRIVAL · the archive door = The Manifold + the choice -->
-<div id="boot" class="screen active">
-  <div class="door" id="door">
+<!-- ARRIVAL + HUB · one continuous screen: terminal boots -> closes -> ENTER opens the page -> realms -->
+<div id="boot" class="screen active" data-phase="boot">
+
+  <!-- BOOT — framed terminal (only while data-phase=boot) -->
+  <div class="terminal" id="terminal">
     <span class="corner tl">◤</span><span class="corner tr">◥</span>
     <span class="corner bl">◣</span><span class="corner br">◢</span>
     <div class="bar"><span>MANIFOLD ARCHIVE TERMINAL</span><span class="r" id="door-time">T+00:00:00</span></div>
-    <div class="door-body">
-      <div class="meta" id="door-meta"></div>
-      <div class="arrival-stage" id="arrival-stage">
-        <div class="wm black" id="door-title">The Manifold</div>
-        <div class="motto">THE STORE IN WHICH KNOWLEDGE IS KEPT</div>
+    <div class="bootlog" id="bootlog"></div>
+  </div>
+
+  <!-- HUB — plain, frameless -->
+  <span class="hub-crumb" id="mp-breadcrumb"></span>
+
+  <!-- the hub fills the screen (parallax-style section); the explanation is the next screen below -->
+  <div class="hub-screen">
+    <!-- the hero title: never resizes; the click target that opens the page -->
+    <div class="hero" id="hero">
+      <span class="enter-cue" id="enter-cue">ENTER</span>
+      <div class="mp-title" id="mp-title">THE MANIFOLD</div>
+    </div>
+
+    <!-- the gate: full-width doors covering everything below the title; part to reveal the realms -->
+    <div class="gate" id="gate">
+      <div class="leaf left"></div>
+      <div class="leaf right"></div>
+      <div class="gate-inner">
         <div class="hub-stage" id="hub-stage"></div>
+        <hr class="mp-line">
+        <div class="hub-choose" id="mp-choose">
+          <a class="ht-btn" id="ht-garden">❧&nbsp; THE GARDEN</a>
+          <span class="ch-div">·</span>
+          <a class="ht-btn" id="ht-library">THE LIBRARY&nbsp; ❧</a>
+        </div>
+        <div class="mp-foot">— <span id="hub-hint">choose a realm</span> —</div>
       </div>
-      <hr class="arrival-div">
-      <div class="hub-choose">
-        <a class="ht-btn" id="ht-garden">❧&nbsp; THE GARDEN</a>
-        <span class="ch-div">·</span>
-        <a class="ht-btn" id="ht-library">THE LIBRARY&nbsp; ❧</a>
-      </div>
-      <div class="hub-foot">— <span id="hub-hint">choose a realm</span> &nbsp;·&nbsp; descend to <a id="hub-roots">THE ROOTS ↓</a> —</div>
     </div>
   </div>
+
+  <!-- the how-it-works text: the next full screen down (scroll to find it) -->
+  <div class="mp-desc" id="mp-desc">
+    <p><b>The Manifold</b> is the store in which knowledge is kept — it holds two realms.</p>
+    <p><span class="d-garden">The Garden</span> grows stories: myths, dreams, fragments to wander.<br>
+       <span class="d-library">The Library</span> shelves the signs: a field guide to the omens you meet, and how to read them.</p>
+    <p class="d-hint">Choose a realm above. Tend a bloom or draw a book to open it; follow the roots to see how it all connects.</p>
+  </div>
+
 </div>
 
 <!-- READER -->
@@ -65,16 +90,6 @@
   </div>
 </div>
 
-<!-- MANIFOLD -->
-<div id="manifold" class="screen">
-  <div class="reader-nav">
-    <a id="manifold-back">[ BACK ]</a>
-  </div>
-  <hr>
-  <div class="manifold-head">THE ROOTS -- how the pages connect beneath the garden</div>
-  <div class="manifold-map" id="manifold-map"></div>
-</div>
-
 <!-- STATUS -->
 <div id="statusbar">
   <span class="live" id="status-file">NO FILE OPEN</span>
@@ -82,8 +97,8 @@
   <span class="sb-right">THE WORLD CONTINUES ELSEWHERE</span>
 </div>
 
-<script src="data/entries.js?v=33"></script>
+<script src="data/entries.js?v=36"></script>
 <script src="js/atmosphere.js?v=12"></script>
-<script src="js/garden.js?v=35"></script>
+<script src="js/garden.js?v=43"></script>
 </body>
 </html>
