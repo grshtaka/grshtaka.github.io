@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE MANIFOLD · EDITOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/garden.css?v=54">
+<style>
+  /* editor-only chrome (the form); the preview reuses garden.css classes */
+  * { cursor: auto !important; }                 /* garden.css hides the cursor globally; bring it back here */
+  input, textarea { cursor: text !important; }
+  button, .seg button, .btn, .pick, .swatch, a, select, [type=file] { cursor: pointer !important; }
+  html, body { overflow:auto; }
+  body { font-family:"VT323",monospace; color:var(--sage); padding:3vh 4vw 10vh; min-height:auto; }
+  #cursor{ display:none !important; }
+  .ed-wrap { max-width: 1100px; margin: 0 auto; display:grid; grid-template-columns: 1.1fr .9fr; gap: 34px; }
+  @media (max-width: 800px){ .ed-wrap{ grid-template-columns:1fr; } }
+  .ed-title { font-family:"Pirata One",serif; font-size:clamp(34px,6vw,60px); color:var(--sage);
+    text-shadow:0 0 14px rgba(120,180,110,.5); margin:0 0 .2em; }
+  .ed-sub { color:var(--moss); font-size:18px; margin:0 0 3vh; letter-spacing:1px; }
+  .ed-note { color:var(--dim); font-size:15px; line-height:1.5; border-left:2px solid var(--line); padding-left:12px; margin:0 0 3vh; }
+  label { display:block; color:var(--moss); font-size:17px; letter-spacing:1px; margin:18px 0 5px; }
+  input[type=text], textarea, select {
+    width:100%; box-sizing:border-box; background:rgba(120,170,110,.04); color:var(--sage);
+    border:1px solid var(--line); border-radius:3px; padding:9px 11px; font-family:"VT323",monospace;
+    font-size:19px; letter-spacing:.5px; }
+  textarea { min-height: 200px; line-height:1.5; resize:vertical; }
+  input:focus, textarea:focus, select:focus { outline:1px solid var(--moss); border-color:var(--moss); }
+  .row { display:flex; gap:14px; } .row > * { flex:1; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  .seg button { background:transparent; color:var(--moss); border:none; padding:9px 18px; font-family:"VT323",monospace;
+    font-size:19px; letter-spacing:1px; cursor:pointer; }
+  .seg button.on { background:rgba(120,170,110,.16); color:var(--sage); text-shadow:0 0 10px rgba(120,180,110,.5); }
+  .picks { display:flex; flex-wrap:wrap; gap:8px; }
+  .pick { width:42px; height:42px; display:grid; place-items:center; border:1px solid var(--line); border-radius:4px;
+    background:rgba(0,0,0,.25); font-size:24px; color:var(--sage); cursor:pointer; }
+  .pick.on { border-color:var(--moss); box-shadow:0 0 10px rgba(120,180,110,.4); background:rgba(120,170,110,.12); }
+  .swatch { width:30px; height:30px; border-radius:50%; border:2px solid transparent; cursor:pointer; }
+  .swatch.on { border-color:var(--sage); box-shadow:0 0 10px currentColor; }
+  .btns { display:flex; gap:14px; margin-top:26px; flex-wrap:wrap; }
+  .btn { background:rgba(120,170,110,.10); color:var(--sage); border:1px solid var(--moss); border-radius:4px;
+    padding:12px 22px; font-family:"VT323",monospace; font-size:21px; letter-spacing:1px; cursor:pointer; }
+  .btn:hover { background:rgba(120,170,110,.2); text-shadow:0 0 10px rgba(120,180,110,.5); }
+  .btn.ghost { border-color:var(--line); color:var(--moss); }
+  .hint { color:var(--dim); font-size:14px; margin-top:5px; }
+  .ed-side { position:sticky; top:3vh; align-self:start; }
+  .panel { border:1px solid var(--line); border-radius:5px; padding:16px; margin-bottom:22px; background:rgba(0,0,0,.2); }
+  .panel h3 { color:var(--moss); font-size:16px; letter-spacing:2px; margin:0 0 12px; font-weight:normal; }
+  /* preview stage reuses .bed/.bloom/.shelf/.book from garden.css */
+  .pv-stage { min-height: 210px; display:flex; align-items:flex-end; justify-content:center; }
+  .pv-page { margin-top:14px; border-top:1px solid var(--line); padding-top:14px; max-height:300px; overflow:auto; }
+  .pv-page .verse-line { display:block; }
+  #export-box { width:100%; box-sizing:border-box; min-height:160px; font-size:15px; background:#0a0f0a; color:var(--olive);
+    border:1px solid var(--moss); border-radius:4px; padding:12px; white-space:pre; overflow:auto; }
+  .drafts li { display:flex; align-items:center; gap:10px; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); }
+  .drafts a.del { color:var(--bloom,#cf8a4a); cursor:pointer; font-size:15px; }
+  .saved-flash { color:var(--fern); font-size:16px; margin-left:8px; opacity:0; transition:opacity .3s; }
+  .saved-flash.show { opacity:1; }
+  a.home { color:var(--moss); font-size:16px; }
+</style>
+</head>
+<body>
+
+  <h1 class="ed-title">THE MANIFOLD · EDITOR</h1>
+  <p class="ed-sub">add a story or a sign — <a class="home" href="index.html">↩ back to the manifold</a></p>
+  <p class="ed-note">
+    <b>Save</b> shows the page instantly in your own browser (private preview). To publish it for everyone,
+    press <b>Export</b>, paste the snippet into <code>data/entries.js</code>, drop any gif into <code>assets/</code>,
+    then push with GitHub Desktop. See <code>HOW-TO-ADD.md</code>.
+  </p>
+
+  <div class="ed-wrap">
+    <!-- ============ FORM ============ -->
+    <div class="ed-form">
+      <label>What are you adding?</label>
+      <div class="seg" id="seg-coll">
+        <button type="button" data-coll="garden" class="on">❀ GARDEN STORY</button>
+        <button type="button" data-coll="library">❧ LIBRARY SIGN</button>
+      </div>
+
+      <div class="row">
+        <div><label>Name</label><input type="text" id="f-name" placeholder="DUSKFALL.TXT / WHITE DOG"></div>
+        <div><label>id (auto)</label><input type="text" id="f-id" placeholder="duskfall"></div>
+      </div>
+
+      <div id="garden-only">
+        <label>Mood (sets the default colour)</label>
+        <select id="f-kind">
+          <option value="DREAM">DREAM — cyan</option>
+          <option value="COSMOGONY">COSMOGONY — gold</option>
+          <option value="MYTH">MYTH — amber</option>
+          <option value="SHADOW">SHADOW — violet</option>
+          <option value="ABOUT">ABOUT — sage</option>
+        </select>
+
+        <label>Flower (shown in the bed)</label>
+        <div class="picks" id="flower-picks"></div>
+      </div>
+
+      <div id="library-only" style="display:none">
+        <label>Book height</label>
+        <div class="seg" id="seg-h">
+          <button type="button" data-h="150" >SHORT</button>
+          <button type="button" data-h="176" class="on">MEDIUM</button>
+          <button type="button" data-h="200">TALL</button>
+        </div>
+      </div>
+
+      <label>Colour</label>
+      <div class="picks" id="color-swatches"></div>
+      <div class="row" style="align-items:center;margin-top:8px">
+        <div style="flex:0 0 auto"><input type="color" id="f-color" value="#4fd6e0" style="width:54px;height:38px;padding:2px"></div>
+        <div class="hint" style="flex:1">pick a swatch or choose a custom colour</div>
+      </div>
+
+      <label>One-line description (shown on hover)</label>
+      <input type="text" id="f-desc" placeholder="what this page is, in a few words">
+
+      <label id="text-label">The poem / fragment (blank line = new stanza)</label>
+      <textarea id="f-text" placeholder="type or paste your text here..."></textarea>
+
+      <label id="gif-label">Background gif — optional</label>
+      <div class="row" style="align-items:center">
+        <div style="flex:2"><input type="text" id="f-gif" placeholder="assets/yourfile.gif"></div>
+        <div style="flex:1"><input type="file" id="f-upload" accept="image/*" style="font-size:14px;color:var(--moss)"></div>
+      </div>
+      <div class="hint">For publishing, put the file in <code>assets/</code> and type its name. Upload is just for instant preview.</div>
+
+      <div class="btns">
+        <button type="button" class="btn" id="btn-save">✓ Save (preview)</button>
+        <button type="button" class="btn ghost" id="btn-export">⇪ Export (publish)</button>
+        <span class="saved-flash" id="saved-flash">saved — open the manifold to see it</span>
+      </div>
+    </div>
+
+    <!-- ============ SIDE: preview / export / drafts ============ -->
+    <div class="ed-side">
+      <div class="panel">
+        <h3>PREVIEW</h3>
+        <div class="pv-stage" id="pv-stage"></div>
+        <div class="pv-page" id="pv-page"></div>
+      </div>
+      <div class="panel" id="export-panel" style="display:none">
+        <h3>EXPORT — paste this into data/entries.js</h3>
+        <textarea id="export-box" readonly></textarea>
+        <div class="btns"><button type="button" class="btn ghost" id="btn-copy">copy</button></div>
+      </div>
+      <div class="panel">
+        <h3>YOUR SAVED PAGES (this browser)</h3>
+        <ul class="drafts" id="drafts-list" style="list-style:none;padding:0;margin:0"></ul>
+        <div class="btns"><button type="button" class="btn ghost" id="btn-clear">clear all drafts</button></div>
+      </div>
+    </div>
+  </div>
+
+<script src="data/entries.js?v=55"></script>
+<script src="js/editor.js?v=55"></script>
+</body>
+</html>

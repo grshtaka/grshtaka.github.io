@@ -5,6 +5,15 @@
    ============================================================ */
 (function () {
   const ENTRIES = window.ENTRIES || [];
+  // merge pages saved locally by editor.html (preview mode); a draft id overrides a published one
+  try {
+    const drafts = JSON.parse(localStorage.getItem('manifold_drafts') || '[]');
+    if (Array.isArray(drafts)) {
+      const ids = new Set(drafts.map(d => d && d.id));
+      for (let i = ENTRIES.length - 1; i >= 0; i--) if (ids.has(ENTRIES[i].id)) ENTRIES.splice(i, 1);
+      drafts.forEach(d => { if (d && d.id && Array.isArray(d.blocks)) ENTRIES.push(d); });
+    }
+  } catch (e) { /* ignore bad/empty drafts */ }
   const byId = Object.fromEntries(ENTRIES.map(e => [e.id, e]));
 
   /* section -> bloom css var + small sigil */
@@ -218,7 +227,7 @@
     stage.innerHTML = '<div class="stage-info" id="stage-info"></div><div class="bed">' + seeds + list.map((e, i) => {
       const c = entryBloom(e);
       return `<div class="bloom" data-id="${e.id}" style="--c:${c};--stem:${stems[i % stems.length]}px;">`
-        + `<div class="flower">${flower(e.kind)}</div></div>`;
+        + `<div class="flower">${e.flower || flower(e.kind)}</div></div>`;
     }).join('') + '</div>';
     wireStageItems(stage, '.bloom');
   }
@@ -226,7 +235,7 @@
     const heights = [176, 150, 192, 160, 184, 144];
     stage.innerHTML = '<div class="stage-info" id="stage-info"></div><div class="shelf">' + list.map((e, i) => {
       const c = entryBloom(e);
-      return `<div class="book" data-id="${e.id}" style="--c:${c};--h:${heights[i % heights.length]}px;">`
+      return `<div class="book" data-id="${e.id}" style="--c:${c};--h:${(e.h || heights[i % heights.length])}px;">`
         + `<div class="spine">${e.name}</div></div>`;
     }).join('') + '</div>';
     wireStageItems(stage, '.book');

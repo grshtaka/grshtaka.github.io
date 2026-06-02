@@ -1,22 +1,73 @@
 /* ============================================================
-   THE GARDEN — content
+   THE GARDEN — content   (no build step; just edit + commit)
    ------------------------------------------------------------
-   One file. Add entries here. No build step.
+   EASIEST WAY TO ADD A PAGE: open  editor.html  in your browser,
+   fill the form (pick a flower/colour, paste your text, add a gif),
+   press Export, and paste the snippet it gives you down at the
+   bottom of the list below. Then bump  data/entries.js?v=NN  in
+   index.html and push with GitHub Desktop. (See HOW-TO-ADD.md.)
 
-   Each entry:
-     id      unique slug (used by links + navigation)
-     name    filename shown in the directory
-     heading title shown at the top of the page
-     kind    section -> drives the bloom color (see SECTION_COLORS
-             in js/garden.js): ABOUT | COSMOGONY | MYTH | SHADOW | DREAM
-     path    fake DOS path shown as the page kicker
-     links   ids of related entries (the [ SEE ALSO ] web)
-     blocks  the page content, top to bottom. Block types:
-       { t:'verse', lines:[ {t:'line',text} | {t:'stanza'} | {t:'refrain',text} ] }
-       { t:'ascii', art:`...multiline...`, cap:'FIG. LABEL' }   // ASCII art / diagram
-       { t:'note',  text:'a prose paragraph' }
-       { t:'image', src:'assets/x.gif', cap:'...', treat:'crt' } // crt = green-dithered
+   ── To add by hand, copy ONE of these and fill it in ──────────
+
+   // A GARDEN STORY (a poem / fragment). text: blank line = stanza break.
+   story({
+     id:   'duskfall',                 // unique, lowercase, no spaces
+     name: 'DUSKFALL.TXT',             // shown on the page + shelf
+     kind: 'DREAM',                    // ABOUT | COSMOGONY | MYTH | SHADOW | DREAM
+     flower: '✿',                      // optional — the bloom in the bed
+     color: '',                        // optional '#rrggbb' to override the mood colour
+     desc: 'one line shown when you hover the bloom',
+     text: `
+First line of the poem.
+Second line.
+
+A new stanza after the blank line.`,
+     // bg: 'assets/yourbackground.gif',   // optional page background
+   }),
+
+   // A LIBRARY SIGN (an omen + its meaning)
+   sign({
+     id:   'whitedog',
+     name: 'WHITE DOG',
+     color: '#cf8a4a',                 // the book spine + page colour
+     desc: 'one line shown when you hover the book',
+     gif:  'assets/whitedog.gif',      // optional image on the page
+     text: 'The full interpretation paragraph goes here.',
+   }),
    ============================================================ */
+
+/* ---- authoring helpers (used here AND by editor.html's Export) ---- */
+function verse(text) {
+  const lines = [];
+  String(text || '').replace(/\r/g, '').split('\n').forEach(raw => {
+    const t = raw.trim();
+    if (t === '') { if (lines.length && lines[lines.length - 1].t !== 'stanza') lines.push({ t: 'stanza' }); }
+    else lines.push({ t: 'line', text: t });
+  });
+  while (lines.length && lines[lines.length - 1].t === 'stanza') lines.pop();
+  return { t: 'verse', lines };
+}
+function story(o) {
+  const blocks = [];
+  if (o.gif) blocks.push({ t: 'image', src: o.gif, cap: o.name, treat: 'crt' });
+  blocks.push(verse(o.text));
+  const e = { id: o.id, name: o.name, kind: o.kind || 'DREAM', collection: 'garden',
+              desc: o.desc || '', blocks };
+  if (o.color)  e.color  = o.color;
+  if (o.flower) e.flower = o.flower;
+  if (o.bg)     e.bg     = o.bg;
+  return e;
+}
+function sign(o) {
+  const blocks = [];
+  if (o.gif) blocks.push({ t: 'image', src: o.gif, cap: o.name, treat: 'crt' });
+  blocks.push({ t: 'note', text: o.text || '' });
+  const e = { id: o.id, name: o.name, kind: 'SIGN', collection: 'library',
+              color: o.color || '#cf8a4a', desc: o.desc || '', blocks };
+  if (o.h) e.h = o.h;
+  return e;
+}
+window.Authoring = { verse, story, sign };
 
 window.ENTRIES = [
   {
