@@ -65,6 +65,7 @@ function sign(o) {
   const e = { id: o.id, name: o.name, kind: 'SIGN', collection: 'library',
               color: o.color || '#cf8a4a', desc: o.desc || '', blocks };
   if (o.h) e.h = o.h;
+  if (o.w) e.w = o.w;
   return e;
 }
 window.Authoring = { verse, story, sign };

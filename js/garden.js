@@ -35,6 +35,12 @@
   function flower(kind)  { return (SECTION[kind] || SECTION.ABOUT).flower; }
   // a library sign carries its own `color`; a garden story uses its section bloom
   function entryBloom(e) { return (e && e.color) || bloomHex(e.kind); }
+  // the entry's gif (if any): an image block's src, else the page background — used as the bed/shelf marker
+  function entryGif(e) {
+    if (!e) return '';
+    const img = (e.blocks || []).find(b => b.t === 'image' && b.src);
+    return (img && img.src) || e.bg || '';
+  }
   function hexToHue(hex) {
     const m = hex.replace('#', '');
     const v = m.length === 3 ? m.split('').map(c => c + c).join('') : m;
@@ -224,7 +230,7 @@
     let seeds = '';
     for (let i = 0; i < 5; i++)
       seeds += `<span class="bed-seed" style="left:${8 + Math.random() * 84}%;top:${8 + Math.random() * 40}%"></span>`;
-    stage.innerHTML = '<div class="stage-info" id="stage-info"></div><div class="bed">' + seeds + list.map((e, i) => {
+    stage.innerHTML = '<div class="bed">' + seeds + list.map((e, i) => {
       const c = entryBloom(e);
       return `<div class="bloom" data-id="${e.id}" style="--c:${c};--stem:${stems[i % stems.length]}px;">`
         + `<div class="flower">${e.flower || flower(e.kind)}</div></div>`;
@@ -233,23 +239,33 @@
   }
   function renderShelf(stage, list) {
     const heights = [176, 150, 192, 160, 184, 144];
-    stage.innerHTML = '<div class="stage-info" id="stage-info"></div><div class="shelf">' + list.map((e, i) => {
-      const c = entryBloom(e);
-      return `<div class="book" data-id="${e.id}" style="--c:${c};--h:${(e.h || heights[i % heights.length])}px;">`
-        + `<div class="spine">${e.name}</div></div>`;
+    stage.innerHTML = '<div class="shelf">' + list.map((e, i) => {
+      const c = entryBloom(e); const g = entryGif(e);
+      const sty = `--c:${c};--h:${(e.h || heights[i % heights.length])}px;--w:${(e.w || 44)}px;`
+        + (g ? `background-image:url('${g}');` : '');
+      return `<div class="book${g ? ' has-gif' : ''}" data-id="${e.id}" style="${sty}"><div class="spine">${e.name}</div></div>`;
     }).join('') + '</div>';
     wireStageItems(stage, '.book');
   }
-  // shared: hovering a bloom/book shows centered name (in its colour, underlined) + desc
+  // shared: hovering a bloom/book fills the placard with its name + desc, tinted to its colour
+  function placardIdle() {
+    const card = $('placard'); if (!card) return;
+    card.classList.remove('lit'); card.removeAttribute('style');
+    card.innerHTML = '<span class="placard-hint">— hover to read —</span>';
+  }
   function wireStageItems(stage, sel) {
-    const info = stage.querySelector('#stage-info');
+    const card = $('placard');
+    placardIdle();
     stage.querySelectorAll(sel).forEach(el => {
       const e = byId[el.dataset.id]; const c = entryBloom(e);
       el.addEventListener('mouseenter', () => {
-        info.innerHTML = `<span class="si-name" style="color:${c}">${e.name.replace('.TXT', '')}</span>`
-          + `<span class="si-desc">${e.desc || ''}</span>`;
+        card.classList.add('lit');
+        card.style.borderColor = `color-mix(in srgb, ${c} 50%, var(--line))`;
+        card.style.background = `color-mix(in srgb, ${c} 9%, transparent)`;
+        card.innerHTML = `<div class="placard-name" style="color:${c}">${e.name.replace('.TXT', '')}</div>`
+          + `<div class="placard-desc">${e.desc || ''}</div>`;
       });
-      el.addEventListener('mouseleave', () => { info.innerHTML = ''; });
+      el.addEventListener('mouseleave', placardIdle);
       el.addEventListener('click', () => openEntry(e.id, true));
     });
   }

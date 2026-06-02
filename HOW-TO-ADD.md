@@ -6,8 +6,10 @@ There are two ways. The editor is the easy one.
 
 ## The easy way — the editor
 
-1. Open **`editor.html`** in your browser (locally: `http://localhost:8731/editor.html`,
-   or just double-click the file).
+1. Open the editor: click the faint **✶** at the far bottom-right of the site (next to
+   "THE WORLD CONTINUES ELSEWHERE"), or go to **`editor.html`** directly. It asks for a
+   passphrase — currently **`amara`** (wrong/cancel sends you back to the site). To change it,
+   edit `EDITOR_PASS` near the top of `editor.html`.
 2. Pick **GARDEN STORY** or **LIBRARY SIGN** at the top.
 3. Fill it in:
    - **Name** (e.g. `DUSKFALL.TXT` or `WHITE DOG`) — the `id` fills in automatically.
@@ -18,6 +20,12 @@ There are two ways. The editor is the easy one.
    - Watch the **Preview** on the right.
 4. **Save (preview)** — the page now appears in *your* browser when you open the site
    (choose the realm and you'll see your new bloom/book). This is private to your device.
+
+### Editing a page that already exists
+At the top of the editor, use **"Edit an existing page"** to load any current story or sign
+into the form. Change whatever you like and **Save** to preview the change (it overrides the
+original on your device). To publish the edit, **Export** and replace the old block (the one
+with the same `id`) in `data/entries.js`, then do the publish steps below.
 
 ### To publish it for everyone
 5. Press **Export**. Copy the snippet it shows.
@@ -48,5 +56,6 @@ There are two ways. The editor is the easy one.
 Open `data/entries.js` and copy one of the templates at the top of the file (a `story({…})`
 or `sign({…})`), fill it in, and paste it into the list. Then do steps 7–9 above.
 
-`kind` values for a story (they set the default colour): `DREAM`, `COSMOGONY`, `MYTH`,
-`SHADOW`, `ABOUT`. A library `sign` always uses the colour you give it.
+`kind` on a story is just a free-text tag shown as `[ … ]` on the page (type anything —
+`DREAM`, `TWILIGHT`, whatever). The **colour** you give the entry is what tints the page
+(and colours the flower/book); it's independent of the tag.

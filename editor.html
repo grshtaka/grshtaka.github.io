@@ -4,10 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>THE MANIFOLD · EDITOR</title>
+<script>
+  /* ---- editor gate: change EDITOR_PASS to your own password ---- */
+  (function () {
+    var EDITOR_PASS = "amara";                          // <-- SET YOUR PASSWORD HERE
+    try {
+      if (sessionStorage.getItem('manifold_editor') === '1') return;  // already unlocked this session
+      var p = window.prompt('Editor passphrase:');
+      if (p === EDITOR_PASS) sessionStorage.setItem('manifold_editor', '1');
+      else window.location.replace('index.html');        // wrong / cancelled -> back to the manifold
+    } catch (e) { window.location.replace('index.html'); }
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/garden.css?v=54">
+<link rel="stylesheet" href="css/garden.css?v=64">
 <style>
   /* editor-only chrome (the form); the preview reuses garden.css classes */
   * { cursor: auto !important; }                 /* garden.css hides the cursor globally; bring it back here */
@@ -75,7 +87,11 @@
   <div class="ed-wrap">
     <!-- ============ FORM ============ -->
     <div class="ed-form">
-      <label>What are you adding?</label>
+      <label>Edit an existing page — or start fresh</label>
+      <select id="f-load"></select>
+      <div class="hint" id="edit-note" style="display:none"></div>
+
+      <label style="margin-top:22px">What are you adding?</label>
       <div class="seg" id="seg-coll">
         <button type="button" data-coll="garden" class="on">❀ GARDEN STORY</button>
         <button type="button" data-coll="library">❧ LIBRARY SIGN</button>
@@ -87,14 +103,8 @@
       </div>
 
       <div id="garden-only">
-        <label>Mood (sets the default colour)</label>
-        <select id="f-kind">
-          <option value="DREAM">DREAM — cyan</option>
-          <option value="COSMOGONY">COSMOGONY — gold</option>
-          <option value="MYTH">MYTH — amber</option>
-          <option value="SHADOW">SHADOW — violet</option>
-          <option value="ABOUT">ABOUT — sage</option>
-        </select>
+        <label>Setting / tag — type anything (shown as the page's [ TAG ]; the colour below sets the tint)</label>
+        <input type="text" id="f-kind" placeholder="e.g. DREAM, TWILIGHT, A WAKING…">
 
         <label>Flower (shown in the bed)</label>
         <div class="picks" id="flower-picks"></div>
@@ -103,10 +113,21 @@
       <div id="library-only" style="display:none">
         <label>Book height</label>
         <div class="seg" id="seg-h">
-          <button type="button" data-h="150" >SHORT</button>
-          <button type="button" data-h="176" class="on">MEDIUM</button>
-          <button type="button" data-h="200">TALL</button>
+          <button type="button" data-h="auto" class="on">AUTO</button>
+          <button type="button" data-h="112">SMALL</button>
+          <button type="button" data-h="140">SHORT</button>
+          <button type="button" data-h="176">MEDIUM</button>
+          <button type="button" data-h="208">TALL</button>
         </div>
+        <label>Book thickness</label>
+        <div class="seg" id="seg-w">
+          <button type="button" data-w="auto" class="on">AUTO</button>
+          <button type="button" data-w="22">THINNER</button>
+          <button type="button" data-w="32">THIN</button>
+          <button type="button" data-w="44">MEDIUM</button>
+          <button type="button" data-w="60">THICK</button>
+        </div>
+        <div class="hint">AUTO sizes the book from how much you write.</div>
       </div>
 
       <label>Colour</label>
@@ -156,7 +177,7 @@
     </div>
   </div>
 
-<script src="data/entries.js?v=55"></script>
-<script src="js/editor.js?v=55"></script>
+<script src="data/entries.js?v=56"></script>
+<script src="js/editor.js?v=60"></script>
 </body>
 </html>
