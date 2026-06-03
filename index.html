@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/garden.css?v=80">
+<link rel="stylesheet" href="css/garden.css?v=81">
 </head>
 <body>
 
@@ -62,6 +62,7 @@
         </div>
         <div class="mp-foot">— <span id="hub-hint">choose a realm</span> —</div>
         <div class="placard" id="placard"></div>
+        <a class="hub-3d" id="hub-3d" href="#">↯ browse in 3D (beta)</a>
       </div>
     </div>
   </div>
@@ -99,21 +100,29 @@
   </div>
 </div>
 
+<!-- 3D SHELF (spike) -->
+<div id="shelf3d" class="screen">
+  <canvas id="shelf3d-canvas"></canvas>
+  <div id="shelf3d-label"></div>
+  <button id="shelf3d-back" type="button">↩ back</button>
+</div>
+
 <!-- STATUS -->
 <div id="statusbar">
   <span class="live" id="status-file">NO FILE OPEN</span>
   <span id="status-time"></span>
+  <a class="sb-sound" id="sound-link" href="#" title="sound">♪</a>
   <span class="sb-far">
     <span class="sb-moon" id="sb-moon" aria-hidden="true"></span>
     <span class="sb-right">THE WORLD CONTINUES ELSEWHERE</span>
-    <a class="sb-sound" id="sound-link" href="#" title="sound">♪</a>
     <a class="sb-editor" id="editor-link" href="editor.html" title="open the editor">✶</a>
   </span>
 </div>
 
 <script src="data/entries.js?v=56"></script>
 <script src="js/atmosphere.js?v=15"></script>
-<script src="js/sound.js?v=10"></script>
-<script src="js/garden.js?v=72"></script>
+<script src="js/sound.js?v=14"></script>
+<script src="js/shelf3d.js?v=2"></script>
+<script src="js/garden.js?v=74"></script>
 </body>
 </html>

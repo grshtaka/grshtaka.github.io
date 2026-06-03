@@ -95,9 +95,12 @@
   }
   function preloadFiles() { Object.keys(FILES).forEach(function (s) { probeSlot(s, FILES[s]); }); }
   function poolReady(slot) { return pools[slot] && pools[slot].length > 0; }
+  var SEQUENTIAL = { hover: true };   // these slots cycle their variants in order (round-robin), not random
+  var seqIdx = {};
   function pickBuffer(slot) {
     var pool = pools[slot]; if (!pool || !pool.length) return null;
-    return pool[Math.floor(Math.random() * pool.length)].buffer;   // plain uniform random — every variant equally likely
+    if (SEQUENTIAL[slot]) { var i = (seqIdx[slot] || 0) % pool.length; seqIdx[slot] = i + 1; return pool[i].buffer; }
+    return pool[Math.floor(Math.random() * pool.length)].buffer;   // others: uniform random
   }
 
   function playBuffer(buf, vol, maxSec) {
@@ -151,12 +154,52 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
     src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + 0.16);
   }
-  function synthHover() {                            // a tiny soft tick when mousing over an item
-    var t = now(), o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = 880;
-    var g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.1);
+  // a shared reverb (procedural impulse) for the chimes' shimmering tail
+  var reverb = null;
+  function makeReverbIR(sec, decay) {
+    var rate = ctx.sampleRate, len = Math.floor(rate * sec), buf = ctx.createBuffer(2, len, rate);
+    for (var ch = 0; ch < 2; ch++) { var d = buf.getChannelData(ch); for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay); }
+    return buf;
+  }
+  function ensureReverb() {
+    if (reverb || !ctx) return reverb;
+    reverb = ctx.createConvolver(); reverb.buffer = makeReverbIR(2.8, 3.0);
+    var rg = ctx.createGain(); rg.gain.value = 0.38; reverb.connect(rg); rg.connect(master);
+    return reverb;
+  }
+  // wind chimes: each NODE has a fixed pitch (entry 0 = lowest, climbing a pentatonic across octaves);
+  // glassy/crystalline timbre (bright sine + high inharmonic partials), long reverberant shimmer.
+  var GLASS_DEG = [0, 2, 4, 7, 9];   // pentatonic degrees
+  function noteFreq(i) { i = i | 0; var oct = Math.floor(i / GLASS_DEG.length), deg = GLASS_DEG[i % GLASS_DEG.length] + 12 * oct; return 523.25 * Math.pow(2, deg / 12); }
+  function glassChime(i) {                                        // struck-metal / bell timbre, long resonant ring
+    var t = now(), f = noteFreq(i);
+    var out = ctx.createGain(); out.gain.value = 1; out.connect(master);
+    var rv = ensureReverb(); if (rv) out.connect(rv);             // reverberating tail
+    // FM "clang": an inharmonic modulator whose index is strong at the strike then mellows (metallic attack)
+    var car = ctx.createOscillator(); car.type = 'sine'; car.frequency.value = f;
+    var mod = ctx.createOscillator(); mod.type = 'sine'; mod.frequency.value = f * 2.76;   // inharmonic ratio
+    var modGain = ctx.createGain();
+    modGain.gain.setValueAtTime(f * 3.0, t);                      // bright clang at impact
+    modGain.gain.exponentialRampToValueAtTime(f * 0.3, t + 0.8);  // … then settles
+    mod.connect(modGain); modGain.connect(car.frequency);
+    var cg = ctx.createGain();
+    cg.gain.setValueAtTime(0.0001, t); cg.gain.linearRampToValueAtTime(0.05, t + 0.003);
+    cg.gain.exponentialRampToValueAtTime(0.0001, t + 5.2);        // long ring
+    car.connect(cg); cg.connect(out); car.start(t); car.stop(t + 5.3); mod.start(t); mod.stop(t + 5.3);
+    // inharmonic ring partials (bell/bar modes), each with its own decay
+    var P = [[1.19, 0.022, 4.2], [1.71, 0.016, 3.2], [2.76, 0.018, 2.6], [3.76, 0.010, 1.8], [5.40, 0.006, 1.2]];
+    P.forEach(function (p) {
+      var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f * p[0];
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(p[1], t + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + p[2]);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t + p[2] + 0.1);
+    });
+    // a metallic "clink" transient at the strike
+    var nb = ctx.createBufferSource(); nb.buffer = makeNoise(0.05);
+    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4000;
+    var ng = ctx.createGain(); ng.gain.setValueAtTime(0.035, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    nb.connect(hp); hp.connect(ng); ng.connect(out); nb.start(t); nb.stop(t + 0.07);
   }
   function synthChime() { synthTone([660, 990, 1320], 1.1, 0.22, 'sine', 0.01); }
   function synthBell()  { synthTone([330, 494, 659, 880], 2.1, 0.20, 'sine', 0.012); }
@@ -189,7 +232,12 @@
   function bootSnd()    { cueOrWait('boot',  synthBoot, CUE_VOL, 1500, 0); }  // power-on; uncapped (0) so a longer jingle plays out
   function turn()       { cue('pageTurn',  synthTurn, 0.8); }
   var lastHover = 0;
-  function hover()      { var n = performance.now(); if (n - lastHover < 70) return; lastHover = n; cue('hover', synthHover, 0.5); }
+  function hover(i)     {   // i = the node's index (entry 0 lowest, ascending)
+    var n = performance.now(); if (n - lastHover < 70) return; lastHover = n;
+    if (!ctx) return;
+    var b = pickBuffer('hover'); if (b) { playBuffer(b, 0.5); return; }   // real files (round-robin) if present
+    glassChime(i | 0);                                                    // else a glass chime at this node's pitch
+  }
   function pages()      { cue('bookOpen',  synthPages, 0.9); }   // opening a book
   function open()       { cue('storyOpen', synthTurn, 0.85); }   // opening a story
   function bell()       { cue('bookOpen',  synthBell); }

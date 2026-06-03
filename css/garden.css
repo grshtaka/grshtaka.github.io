@@ -219,7 +219,7 @@ hr { border: none; border-top: 1px solid var(--line); }
 /* powered off = nothing but the dark screen + button: hide the atmosphere (fireflies/wheat) and the sky wash */
 /* powered off AND booting = clean dark screen: the atmosphere (fireflies + wheat) and sky wash only
    appear once the hub/select screen shows. #petals fades in so they ease on. */
-#petals{ transition: opacity 1.1s ease; }
+#petals{ transition: opacity 5s ease; }   /* fireflies + wheat ease in over 5s when the hub appears */
 html:has(#boot.screen.active[data-phase="off"]) #petals,
 html:has(#boot.screen.active[data-phase="boot"]) #petals{ opacity:0; }
 html:has(#boot.screen.active[data-phase="off"]) #sky,
@@ -675,9 +675,24 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 #statusbar .sb-editor { color: var(--dim); cursor: none; font-size: 15px; line-height: 1; opacity: .38; }
 #statusbar .sb-editor:hover { color: var(--dim); opacity: .38; text-decoration: none; text-shadow: none; }
 /* the faint ♪ sound toggle — same restraint as the editor star; muted = struck through */
-#statusbar .sb-sound { color: var(--moss); cursor: none; font-size: 15px; line-height: 1; opacity: .5; }
+#statusbar .sb-sound { color: var(--moss); cursor: none; font-size: 15px; line-height: 1; opacity: .5; margin-left: 14px; }
 #statusbar .sb-sound:hover { color: var(--moss); opacity: .5; text-decoration: none; text-shadow: none; }
 #statusbar .sb-sound.muted { color: var(--dim); opacity: .3; text-decoration: line-through; }
+
+/* ---------- 3D shelf (spike) ---------- */
+#shelf3d{ position:fixed; inset:0; background:#060806; }
+#shelf3d-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+/* keep the 3D scene clean: hide the fireflies/wheat + sky wash over it (CRT overlay stays) */
+html:has(#shelf3d.screen.active) #petals,
+html:has(#shelf3d.screen.active) #sky{ display:none; }
+#shelf3d-label{ position:fixed; z-index:20; pointer-events:none; opacity:0; transition:opacity .2s ease;
+  color:var(--sage); font-size:18px; letter-spacing:1px; text-shadow:0 0 10px rgba(0,0,0,.85),0 0 16px rgba(120,180,110,.4); }
+#shelf3d-back{ position:fixed; top:2.2vh; left:3vw; z-index:20; cursor:none;
+  background:rgba(8,14,8,.5); border:1px solid var(--line); border-radius:4px;
+  color:var(--moss); font-family:inherit; font-size:16px; letter-spacing:1px; padding:6px 14px; }
+#shelf3d-back:hover{ color:var(--sage); border-color:var(--moss); text-shadow:0 0 8px rgba(150,200,120,.4); }
+.hub-3d{ display:inline-block; margin-top:16px; color:var(--dim); font-size:16px; letter-spacing:1px; cursor:none; }
+.hub-3d:hover{ color:var(--sage); text-shadow:0 0 8px rgba(150,200,120,.4); }
 
 /* ---------- mobile sanity ---------- */
 @media (max-width: 640px) {

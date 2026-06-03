@@ -380,7 +380,7 @@
           fillPlacard(e, c, 'tap again to open');
         });
       } else {
-        el.addEventListener('mouseenter', () => { if (window.Sound) window.Sound.hover(); fillPlacard(e, c); });
+        el.addEventListener('mouseenter', () => { if (window.Sound) window.Sound.hover(ENTRIES.indexOf(e)); fillPlacard(e, c); });
         el.addEventListener('mouseleave', placardIdle);
         el.addEventListener('click', () => { cueOpen(e); openEntry(e.id, true); });
       }
@@ -669,6 +669,20 @@
     }
     setTimeout(sweep, 20000 + Math.random() * 40000);     // first a while after arrival
   })();
+
+  /* ---- 3D shelf (spike): a small API so js/shelf3d.js can reuse the real entries + reader ---- */
+  function enter3D() {
+    show('shelf3d');
+    if (window.Shelf3D) window.Shelf3D.open();
+  }
+  window.Manifold = {
+    entries: ENTRIES, byId: byId, color: entryBloom,
+    open: function (id) { openEntry(id, true); },
+    toHub: function () { showManifold(null); },
+    enter3D: enter3D
+  };
+  { const b = $('hub-3d'); if (b) b.addEventListener('click', e => { e.preventDefault(); enter3D(); }); }
+  { const b = $('shelf3d-back'); if (b) b.addEventListener('click', e => { e.preventDefault(); showManifold(null); }); }
 
   /* ---- go ---- */
   // the page now waits on the power-on screen (data-phase="off"); runBoot fires from powerOnClick
