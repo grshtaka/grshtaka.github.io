@@ -24,6 +24,7 @@
     bookOpen:  'assets/book-open.mp3',    // opening a book on the shelf (page flip)
     storyOpen: 'assets/story-open.mp3',   // opening a story in the garden
     pageTurn:  'assets/page-turn.mp3',    // turning a page in the reader
+    hover:     'assets/hover.mp3',        // mousing over a bloom / book in the hub
     thunder:   'assets/thunder.mp3',      // the storm rumble
     // —— continuous ambient beds, one per time of day ——
     ambientDawn:  'assets/ambient-dawn.mp3',
@@ -150,6 +151,13 @@
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
     src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + 0.16);
   }
+  function synthHover() {                            // a tiny soft tick when mousing over an item
+    var t = now(), o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = 880;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.1);
+  }
   function synthChime() { synthTone([660, 990, 1320], 1.1, 0.22, 'sine', 0.01); }
   function synthBell()  { synthTone([330, 494, 659, 880], 2.1, 0.20, 'sine', 0.012); }
   function synthTurn()  { paperTick(now(), 0.12, 2600); }
@@ -180,6 +188,8 @@
   function chime()      { cueOrWait('enter', synthChime, CUE_VOL, 1500); }   // ENTER fires before files load → wait for it
   function bootSnd()    { cueOrWait('boot',  synthBoot, CUE_VOL, 1500, 0); }  // power-on; uncapped (0) so a longer jingle plays out
   function turn()       { cue('pageTurn',  synthTurn, 0.8); }
+  var lastHover = 0;
+  function hover()      { var n = performance.now(); if (n - lastHover < 70) return; lastHover = n; cue('hover', synthHover, 0.5); }
   function pages()      { cue('bookOpen',  synthPages, 0.9); }   // opening a book
   function open()       { cue('storyOpen', synthTurn, 0.85); }   // opening a story
   function bell()       { cue('bookOpen',  synthBell); }
@@ -328,7 +338,7 @@
   window.Sound = {
     start: start, powerOn: powerOn, toggleMute: toggleMute, isMuted: function () { return muted; },
     setWorld: setWorld, setRain: setRain, setSeason: setSeason,
-    chime: chime, boot: bootSnd, turn: turn, pages: pages, open: open, bell: bell, thunder: thunder,
+    chime: chime, boot: bootSnd, hover: hover, turn: turn, pages: pages, open: open, bell: bell, thunder: thunder,
     state: function () { return ctx ? ctx.state : 'none'; },
     ambLevel: function () { return ambGain ? ambGain.gain.value : null; },
     rainGain: function () { return Math.max(rainFileGain ? rainFileGain.gain.value : 0, ambient ? ambient.rgain.gain.value : 0); },

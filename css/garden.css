@@ -86,11 +86,11 @@ html[data-weather="rain"] #sky{ opacity:1; }
   background:linear-gradient(180deg, rgba(44,58,78,.12), rgba(20,28,42,.18)); }
 html[data-weather="rain"] #sky::before{ opacity:1; }
 /* the moon, upper-right, only after dark */
-#sky::after{ content:""; position:absolute; top:4vh; right:5vw; line-height:1; }
-html[data-tod="night"] #sky::after{ content:"\263E"; font-size:38px; color:#dfe6f4; opacity:.85;
-  text-shadow:0 0 18px rgba(210,225,250,.55); }
-html[data-tod="night"][data-moon="full"] #sky::after{ content:"\25CB"; font-size:46px; color:#eef2ff;
-  text-shadow:0 0 28px rgba(225,235,255,.9); }
+/* the moon now lives in the status bar (#sb-moon), not the corner — only after dark */
+#sb-moon{ color:#cdd6ea; font-size:15px; line-height:1; opacity:.85; }
+#sb-moon::before{ content:""; }
+html[data-tod="night"] #sb-moon::before{ content:"\263E"; text-shadow:0 0 10px rgba(210,225,250,.5); }   /* ☾ crescent */
+html[data-tod="night"][data-moon="full"] #sb-moon::before{ content:"\25CB"; color:#eef2ff; text-shadow:0 0 12px rgba(225,235,255,.85); }   /* ○ full */
 /* seasons: a VERY faint light-shift rising from the field — visible year-round (even clear day);
    green stays dominant. Driven by html[data-season]; the wheat (atmosphere.js) is the real tell. */
 html[data-season] #sky{ opacity:1; }
@@ -273,7 +273,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 .hero{ position:relative; z-index:4; text-align:center; width:100%; cursor:none;
   margin-top:34vh; transition: margin-top .55s cubic-bezier(.6,.02,.3,1); }
 #boot[data-phase="boot"] .hero{ display:none; }
-#boot[data-phase="door"] .hero{ animation: crt-on .55s ease both; }
+#boot[data-phase="open"] .hero{ animation: crt-on .55s ease both; }
 /* rise == the stage's content height (~284px) so the choice stays put; clamps near the top on short screens */
 #boot.chosen .hero{ margin-top:max(3vh, calc(34vh - 284px)); }
 .enter-cue{ position:absolute; left:0; right:0; bottom:100%; margin-bottom:.6vh;
@@ -288,8 +288,9 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 /* the gate — full-width doors that part to reveal the realms beneath the (fixed) title */
 .gate{ position:relative; z-index:1; width:100%; max-width:920px; overflow:hidden; }
 #boot[data-phase="boot"] .gate{ display:none; }
-/* closed doors are just an ornament, only as tall as the choice behind them */
-#boot[data-phase="door"] .gate{ animation: crt-on .55s ease both; }
+/* the hub powers on like a CRT when it appears (doors removed — the boot sequence is the entrance) */
+#boot[data-phase="open"] .gate{ animation: crt-on .55s ease both; }
+.gate .leaf{ display:none !important; }   /* doors removed */
 /* shoji-style sliding doors: dim paper panels behind a wooden kumiko lattice, finger-pull at the seam */
 .gate .leaf{ position:absolute; top:0; bottom:0; width:50%; z-index:3; pointer-events:none;
   background:

@@ -241,26 +241,18 @@
       else setTimeout(done, 360);
     })();
   }
-  function finishBoot() {                       // close the whole terminal, then reveal ENTER THE MANIFOLD
+  function finishBoot() {                       // close the terminal, then reveal the hub directly (no doors)
     const term = $('terminal');
     setTimeout(() => {
       term.classList.add('powering-off');
       setTimeout(() => {
-        $('boot').dataset.phase = 'door';
-        const crt = $('crt'); if (crt) { crt.classList.remove('crt-boot'); crt.classList.add('crt-run'); }   // warm band off; idle scan (random sweeps)
+        $('boot').dataset.phase = 'open';
+        const crt = $('crt'); if (crt) { crt.classList.remove('crt-boot'); crt.classList.add('crt-run'); }
+        idleManifold();
+        if (window.Sound) window.Sound.start();   // audio already unlocked at power-on; bring up the ambient + chime
       }, 620);
     }, 480);
   }
-  // ENTER -> open the whole page in place (part the doors); no screen swap, so the title can't move
-  function openDoor() {
-    const boot = $('boot');
-    if (boot.dataset.phase !== 'door') return;
-    boot.dataset.phase = 'open';
-    if (window.Sound) window.Sound.start();   // the ENTER gesture unlocks + starts the audio
-    idleManifold();
-  }
-  $('hero').addEventListener('click', openDoor);   // the title opens the doors
-  $('gate').addEventListener('click', openDoor);   // ...and so do the doors themselves
 
   // POWER ON: the dark screen + blinking power button. Clicking it unlocks audio (the boot sound),
   // then the terminal powers on like an old CRT (crt-on: a line stretches wide, then opens vertically),
@@ -388,7 +380,7 @@
           fillPlacard(e, c, 'tap again to open');
         });
       } else {
-        el.addEventListener('mouseenter', () => fillPlacard(e, c));
+        el.addEventListener('mouseenter', () => { if (window.Sound) window.Sound.hover(); fillPlacard(e, c); });
         el.addEventListener('mouseleave', placardIdle);
         el.addEventListener('click', () => { cueOpen(e); openEntry(e.id, true); });
       }
@@ -654,11 +646,11 @@
     });
   })();
 
-  function goHome() {                      // back to the closed-door entrance (no re-boot)
+  function goHome() {                      // back to the hub idle (no doors, no re-boot)
     show('boot');
     $('terminal').classList.remove('powering-off');
     $('boot').classList.remove('chosen');
-    $('boot').dataset.phase = 'door';
+    $('boot').dataset.phase = 'open';
     idleManifold();
     clearBloom();
     $('status-file').textContent = 'THE MANIFOLD';
