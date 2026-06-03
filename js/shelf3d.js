@@ -119,7 +119,7 @@
     var m = hit();
     if (m !== hovered) {
       hovered = m;
-      if (m && window.Sound) window.Sound.hover(m.userData.note);
+      if (m && window.Sound) window.Sound.hover(m.userData.note, m.userData.collection);
       if (label) {
         if (m) { label.textContent = m.userData.name; label.style.opacity = 1; }
         else { label.style.opacity = 0; }

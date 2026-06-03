@@ -380,7 +380,7 @@
           fillPlacard(e, c, 'tap again to open');
         });
       } else {
-        el.addEventListener('mouseenter', () => { if (window.Sound) window.Sound.hover(ENTRIES.indexOf(e)); fillPlacard(e, c); });
+        el.addEventListener('mouseenter', () => { if (window.Sound) window.Sound.hover(ENTRIES.indexOf(e), e.collection); fillPlacard(e, c); });
         el.addEventListener('mouseleave', placardIdle);
         el.addEventListener('click', () => { cueOpen(e); openEntry(e.id, true); });
       }

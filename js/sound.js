@@ -24,7 +24,8 @@
     bookOpen:  'assets/book-open.mp3',    // opening a book on the shelf (page flip)
     storyOpen: 'assets/story-open.mp3',   // opening a story in the garden
     pageTurn:  'assets/page-turn.mp3',    // turning a page in the reader
-    hover:     'assets/hover.mp3',        // mousing over a bloom / book in the hub
+    hoverStory:'assets/story-hover.mp3',  // mousing over a GARDEN story  — leaves rustling
+    hoverBook: 'assets/book-hover.mp3',   // mousing over a LIBRARY book
     thunder:   'assets/thunder.mp3',      // the storm rumble
     // —— continuous ambient beds, one per time of day ——
     ambientDawn:  'assets/ambient-dawn.mp3',
@@ -37,6 +38,8 @@
     boot:         'assets/boot.mp3',
     // —— overlay ambience: occasional, any time of day, very low (0–10%), over anything ——
     overlay:      'assets/ambient.mp3',
+    // —— wind chimes: rare, eases in, stays quiet (≤7%), eases away ——
+    chimes:       'assets/wind-chimes.mp3',
   };
 
   var ctx = null, master = null, started = false;
@@ -54,7 +57,7 @@
   var ambGain = null, loopGain = null;             // shared ambient volume + file-loop bus
   var curLoopSrc = null, curLoopKey = null;
   var rainFileGain = null, rainSrc = null, rainStarted = false;
-  var breatheTimer = null, overlayTimer = null, preloaded = false;
+  var breatheTimer = null, overlayTimer = null, chimesTimer = null, preloaded = false;
 
   function now() { return ctx ? ctx.currentTime : 0; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -85,7 +88,7 @@
     pools[slot] = [];
     var i = 1;
     (function next() {
-      if (i > 8) return;
+      if (i > 32) return;   // max variants per slot (probe stops earlier at the first missing number)
       var url = stem + (i === 1 ? '' : String(i)) + ext, idx = i;
       fetch(url).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
         .then(function (a) { return ctx.decodeAudioData(a); })
@@ -95,7 +98,7 @@
   }
   function preloadFiles() { Object.keys(FILES).forEach(function (s) { probeSlot(s, FILES[s]); }); }
   function poolReady(slot) { return pools[slot] && pools[slot].length > 0; }
-  var SEQUENTIAL = { hover: true };   // these slots cycle their variants in order (round-robin), not random
+  var SEQUENTIAL = {};                 // slots listed here cycle variants in order; others pick at random
   var seqIdx = {};
   function pickBuffer(slot) {
     var pool = pools[slot]; if (!pool || !pool.length) return null;
@@ -163,43 +166,43 @@
   }
   function ensureReverb() {
     if (reverb || !ctx) return reverb;
-    reverb = ctx.createConvolver(); reverb.buffer = makeReverbIR(2.8, 3.0);
-    var rg = ctx.createGain(); rg.gain.value = 0.38; reverb.connect(rg); rg.connect(master);
+    reverb = ctx.createConvolver(); reverb.buffer = makeReverbIR(1.1, 3.4);   // short space — a small chime, not a cathedral bell
+    var rg = ctx.createGain(); rg.gain.value = 0.18; reverb.connect(rg); rg.connect(master);
     return reverb;
   }
   // wind chimes: each NODE has a fixed pitch (entry 0 = lowest, climbing a pentatonic across octaves);
   // glassy/crystalline timbre (bright sine + high inharmonic partials), long reverberant shimmer.
-  var GLASS_DEG = [0, 2, 4, 7, 9];   // pentatonic degrees
-  function noteFreq(i) { i = i | 0; var oct = Math.floor(i / GLASS_DEG.length), deg = GLASS_DEG[i % GLASS_DEG.length] + 12 * oct; return 523.25 * Math.pow(2, deg / 12); }
-  function glassChime(i) {                                        // struck-metal / bell timbre, long resonant ring
+  // JUST-INTONATION C-major pentatonic (beatless overtone tuning): C D E G A = 1/1 9/8 5/4 3/2 +sixth.
+  var JI_SIXTH = 13 / 8;              // the 'A': 13/8 = neutral/mystical (harmonic 13).  ← change to 5/3 for a clean major sixth
+  var JI = [1 / 1, 9 / 8, 5 / 4, 3 / 2, JI_SIXTH];
+  // var JI = [1, 1.144, 1.307, 1.541, 2.0];   // ← exact tuning measured from wind-chimes.mp3 (stretched C D E G), if you want max fidelity
+  var CHIME_BASE = 1046.5;           // C6 — small/high chime register (analysis of wind-chimes.mp3 sits ~C7). Raise→smaller, lower→deeper.
+  function noteFreq(i) { i = i | 0; var oct = Math.floor(i / JI.length), step = i % JI.length; return CHIME_BASE * JI[step] * Math.pow(2, oct); }
+  function glassChime(i) {     // modelled on wind-chimes.mp3: high bright ping, fast initial decay, long faint tail
     var t = now(), f = noteFreq(i);
     var out = ctx.createGain(); out.gain.value = 1; out.connect(master);
-    var rv = ensureReverb(); if (rv) out.connect(rv);             // reverberating tail
-    // FM "clang": an inharmonic modulator whose index is strong at the strike then mellows (metallic attack)
-    var car = ctx.createOscillator(); car.type = 'sine'; car.frequency.value = f;
-    var mod = ctx.createOscillator(); mod.type = 'sine'; mod.frequency.value = f * 2.76;   // inharmonic ratio
-    var modGain = ctx.createGain();
-    modGain.gain.setValueAtTime(f * 3.0, t);                      // bright clang at impact
-    modGain.gain.exponentialRampToValueAtTime(f * 0.3, t + 0.8);  // … then settles
-    mod.connect(modGain); modGain.connect(car.frequency);
-    var cg = ctx.createGain();
-    cg.gain.setValueAtTime(0.0001, t); cg.gain.linearRampToValueAtTime(0.05, t + 0.003);
-    cg.gain.exponentialRampToValueAtTime(0.0001, t + 5.2);        // long ring
-    car.connect(cg); cg.connect(out); car.start(t); car.stop(t + 5.3); mod.start(t); mod.stop(t + 5.3);
-    // inharmonic ring partials (bell/bar modes), each with its own decay
-    var P = [[1.19, 0.022, 4.2], [1.71, 0.016, 3.2], [2.76, 0.018, 2.6], [3.76, 0.010, 1.8], [5.40, 0.006, 1.2]];
-    P.forEach(function (p) {
-      var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f * p[0];
-      var g = ctx.createGain();
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(p[1], t + 0.003);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + p[2]);
-      o.connect(g); g.connect(out); o.start(t); o.stop(t + p[2] + 0.1);
+    var rv = ensureReverb(); if (rv) out.connect(rv);
+    // fundamental: sharp attack → fast initial drop (~0.25s) → long faint tail (~3.5s) — the measured two-stage decay
+    var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.06, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.012, t + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 3.5);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 3.6);
+    // faint high shimmer (inharmonic tube partials), fading quickly with the bright attack
+    [[2.76, 0.012, 0.45], [5.40, 0.006, 0.28]].forEach(function (p) {
+      var oo = ctx.createOscillator(); oo.type = 'sine'; oo.frequency.value = f * p[0];
+      var gg = ctx.createGain();
+      gg.gain.setValueAtTime(0.0001, t); gg.gain.linearRampToValueAtTime(p[1], t + 0.002);
+      gg.gain.exponentialRampToValueAtTime(0.0001, t + p[2]);
+      oo.connect(gg); gg.connect(out); oo.start(t); oo.stop(t + p[2] + 0.05);
     });
-    // a metallic "clink" transient at the strike
-    var nb = ctx.createBufferSource(); nb.buffer = makeNoise(0.05);
-    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4000;
-    var ng = ctx.createGain(); ng.gain.setValueAtTime(0.035, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-    nb.connect(hp); hp.connect(ng); ng.connect(out); nb.start(t); nb.stop(t + 0.07);
+    // a tiny bright "clink" at the strike
+    var nb = ctx.createBufferSource(); nb.buffer = makeNoise(0.03);
+    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7000;
+    var ng = ctx.createGain(); ng.gain.setValueAtTime(0.02, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    nb.connect(hp); hp.connect(ng); ng.connect(out); nb.start(t); nb.stop(t + 0.04);
   }
   function synthChime() { synthTone([660, 990, 1320], 1.1, 0.22, 'sine', 0.01); }
   function synthBell()  { synthTone([330, 494, 659, 880], 2.1, 0.20, 'sine', 0.012); }
@@ -231,24 +234,52 @@
   function chime()      { cueOrWait('enter', synthChime, CUE_VOL, 1500); }   // ENTER fires before files load → wait for it
   function bootSnd()    { cueOrWait('boot',  synthBoot, CUE_VOL, 1500, 0); }  // power-on; uncapped (0) so a longer jingle plays out
   function turn()       { cue('pageTurn',  synthTurn, 0.8); }
+  function synthRustle() {            // soft leafy swish — fallback for story hover until a file is added
+    var t = now(), src = ctx.createBufferSource(); src.buffer = makeNoise(0.25);
+    var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 0.5;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + 0.36);
+  }
   var lastHover = 0;
-  function hover(i)     {   // i = the node's index (entry 0 lowest, ascending)
+  function hover(i, coll) {           // garden story → leaves rustling; library book → its own sound
     var n = performance.now(); if (n - lastHover < 70) return; lastHover = n;
     if (!ctx) return;
-    var b = pickBuffer('hover'); if (b) { playBuffer(b, 0.5); return; }   // real files (round-robin) if present
-    glassChime(i | 0);                                                    // else a glass chime at this node's pitch
+    var lib = (coll === 'library');
+    var b = pickBuffer(lib ? 'hoverBook' : 'hoverStory');
+    if (b) { playBuffer(b, 0.6); return; }
+    if (lib) glassChime(i | 0); else synthRustle();          // fallbacks until the files are added
   }
   function pages()      { cue('bookOpen',  synthPages, 0.9); }   // opening a book
   function open()       { cue('storyOpen', synthTurn, 0.85); }   // opening a story
   function bell()       { cue('bookOpen',  synthBell); }
   function thunder(lvl) { cue('thunder',   function () { synthThunder(lvl); }, 0.9); }
 
-  // occasional overlay ambience — plays over anything, any time, at a low random volume
+  // play a clip with an ease-in / hold / ease-out envelope (no length cap) — for the occasional ambient layers
+  function playEased(buf, peak, fadeIn, fadeOut) {
+    var t = now(), dur = buf.duration;
+    fadeIn = Math.min(fadeIn, dur / 3); fadeOut = Math.min(fadeOut, dur / 3);
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + fadeIn);            // ease in
+    g.gain.setValueAtTime(peak, t + dur - fadeOut);             // hold
+    g.gain.linearRampToValueAtTime(0.0001, t + dur);            // ease away
+    src.connect(g); g.connect(master); src.start(t); src.stop(t + dur + 0.1);
+  }
+  // occasional overlay ambience — eases in/out, low volume, any time
   function overlayTick() {
-    if (!ctx) return;
+    if (!ctx) { overlayTimer = setTimeout(overlayTick, 60000); return; }
     var b = pickBuffer('overlay');
-    if (b) playBuffer(b, 0.03 + Math.random() * 0.07);            // 0.03–0.10
+    if (b) playEased(b, 0.03 + Math.random() * 0.05, 2.5, 3);     // peak ~0.03–0.08, ease in/out
     overlayTimer = setTimeout(overlayTick, (30 + Math.random() * 50) * 1000);   // every ~30–80 s
+  }
+  // wind chimes — rare; eases in, stays quiet (≤7%), eases away
+  function chimesTick() {
+    if (!ctx) { chimesTimer = setTimeout(chimesTick, 60000); return; }
+    var b = pickBuffer('chimes');
+    if (b) playEased(b, 0.06, 4, 4);                              // peak 6% (≤7%), slow ease in/out
+    chimesTimer = setTimeout(chimesTick, (120 + Math.random() * 180) * 1000);   // rarely: every ~2–5 min
   }
 
   /* ─── ambient bed (continuous, breathing volume) ─── */
@@ -354,7 +385,11 @@
     if (!ensureCtx()) return;
     if (ctx.state === 'suspended') ctx.resume();
     doPreload();
-    if (!started) { started = true; buildAmbient(); breatheTick(); overlayTimer = setTimeout(overlayTick, (12 + Math.random() * 20) * 1000); }
+    if (!started) {
+      started = true; buildAmbient(); breatheTick();
+      overlayTimer = setTimeout(overlayTick, (12 + Math.random() * 20) * 1000);
+      chimesTimer = setTimeout(chimesTick, (45 + Math.random() * 60) * 1000);   // first wind chimes a while in
+    }
     chime();
   }
   function applyMute() {
