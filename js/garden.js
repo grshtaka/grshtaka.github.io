@@ -98,11 +98,66 @@
     curQueued = false;
     cur.style.transform = 'translate(' + (mx - 9) + 'px,' + (my - 9) + 'px)';
   }
+  /* ---- the breathing world: real time-of-day + moon phase ---- */
+  function timeOfDay(h) { return (h >= 5 && h < 8) ? 'dawn' : (h >= 8 && h < 17) ? 'day' : (h >= 17 && h < 20) ? 'dusk' : 'night'; }
+  function moonIsFull(d) {                       // ~±1 day of full, from a known new moon + synodic month
+    const NEW = Date.UTC(2000, 0, 6, 18, 14), SYN = 29.53058867;
+    let age = ((d.getTime() - NEW) / 86400000) % SYN; if (age < 0) age += SYN;
+    return Math.abs(age - 14.7653) < 1.2;
+  }
+  const WEATHER = {
+    dawn: '☼ dawn · the blooms are waking',
+    day: 'THE WORLD CONTINUES ELSEWHERE',
+    dusk: '☼ dusk · the field turns to amber',
+    night: '☾ night · the blooms have folded',
+    'night-full': '○ full moon · the garden is silvered',
+  };
+  const RAIN_LINE = { 1: '⛆ rain · the garden drinks', 2: '⛈ storm · the garden trembles' };
+  let lastWorld = '', timeKey = 'day', rainState = 0;
+  function setWeatherLine() {
+    const sb = document.querySelector('#statusbar .sb-right'); if (!sb) return;
+    sb.textContent = rainState ? (RAIN_LINE[rainState] || RAIN_LINE[1]) : (WEATHER[timeKey] || WEATHER.day);
+  }
+  function applyWorld(phase, full) {
+    const key = phase + (phase === 'night' && full ? '-full' : '');
+    if (key === lastWorld) return; lastWorld = key; timeKey = key;
+    const root = document.documentElement;
+    root.dataset.tod = phase;
+    if (phase === 'night' && full) root.dataset.moon = 'full'; else root.removeAttribute('data-moon');
+    if (window.Atmosphere) window.Atmosphere.setNight(phase === 'night');
+    setWeatherLine();
+  }
+  function setRain(level) {
+    level = level | 0; if (level === rainState) return; rainState = level;
+    const root = document.documentElement;
+    if (level) root.dataset.weather = 'rain'; else root.removeAttribute('data-weather');
+    if (window.Atmosphere) window.Atmosphere.setRain(level);
+    setWeatherLine();
+  }
+  window.__setTOD = function (phase, full) { lastWorld = '__'; applyWorld(phase, !!full); };   // dev/testing hook
+  window.__setRain = function (level) { setRain(level); };
+
+  /* real weather for Belgrade, Serbia -> open-meteo (free, no key, no location prompt) */
+  const WEATHER_LAT = 44.79, WEATHER_LON = 20.45;   // Belgrade
+  function rainLevelFromCode(code, precip) {
+    if (code >= 95) return 2;                                                  // thunderstorm
+    if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || precip > 0) return 1;
+    return 0;
+  }
+  function checkWeather() {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + WEATHER_LAT + '&longitude=' + WEATHER_LON + '&current=precipitation,weather_code')
+      .then(r => r.json())
+      .then(j => { const c = j && j.current; if (c) setRain(rainLevelFromCode(+c.weather_code, +c.precipitation || 0)); })
+      .catch(() => {});
+  }
+  addEventListener('load', () => { checkWeather(); setInterval(checkWeather, 15 * 60 * 1000); });
+
   function tick() {
     const n = new Date();
     const t = [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => String(x).padStart(2, '0')).join(':');
     $('status-time').textContent = t;
     const dt = $('door-time'); if (dt) dt.textContent = 'T+' + t;
+    applyWorld(timeOfDay(n.getHours()), moonIsFull(n));
   }
   setInterval(tick, 1000); tick();
 

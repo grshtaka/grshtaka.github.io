@@ -29,14 +29,99 @@
     return { r: parseInt(v.slice(0, 2), 16), g: parseInt(v.slice(2, 4), 16), b: parseInt(v.slice(4, 6), 16) };
   }
   let showGrass = true;   // the swaying wheat — only drawn on the boot screen
+  let nightOn = false, nightFade = 0;   // fireflies appear at night
+  const reduceMotion = matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const Atmosphere = {
     setBloom(hex, weight) {
       if (hex) bloom = hexToRgb(hex);
       if (typeof weight === 'number') bloomWeight = Math.max(0, Math.min(1, weight));
     },
-    setGrass(on) { showGrass = !!on; }
+    setGrass(on) { showGrass = !!on; },
+    setNight(on) { nightOn = !!on; if (nightOn && !flies.length) initFlies(); },
+    setRain(level) { rainLevel = Math.max(0, Math.min(2, level | 0)); if (rainLevel && !drops.length) initRain(); }
   };
   window.Atmosphere = Atmosphere;
+
+  /* ---- rain (mirrors real weather) + subtle thunder ---- */
+  let rainLevel = 0, rainFade = 0, flash = 0, thunderTimer = 600;
+  const drops = [];
+  function initRain() {
+    drops.length = 0;
+    const count = reduceMotion ? 40 : 150;
+    for (let i = 0; i < count; i++) {
+      drops.push({ x: Math.random() * W, y: Math.random() * H,
+        len: 8 + Math.random() * 14, sp: 7 + Math.random() * 9, a: 0.12 + Math.random() * 0.22 });
+    }
+  }
+  function updateRain() {
+    rainFade += ((rainLevel ? 1 : 0) - rainFade) * 0.02;
+    if (rainFade < 0.01) { flash += (0 - flash) * 0.2; return; }
+    const slant = windStrength * 1.2, intens = rainLevel >= 2 ? 1 : 0.62;
+    const live = Math.floor(drops.length * intens);
+    for (let i = 0; i < live; i++) {
+      const d = drops[i];
+      d.y += d.sp * (rainLevel >= 2 ? 1.25 : 1); d.x += slant;
+      if (d.y > H + 14 || d.x < -20 || d.x > W + 20) { d.y = -14; d.x = Math.random() * W; }
+    }
+    // thunder: occasional pale flash (rarer for drizzle, more for storms)
+    if (!reduceMotion && --thunderTimer <= 0) {
+      flash = rainLevel >= 2 ? 0.32 : 0.16;
+      thunderTimer = (rainLevel >= 2 ? 360 : 900) + Math.floor(Math.random() * 1200);
+    }
+    flash += (0 - flash) * 0.08;
+  }
+  function drawRain() {
+    if (rainFade > 0.01) {
+      const slant = windStrength * 1.2, intens = rainLevel >= 2 ? 1 : 0.62;
+      const live = Math.floor(drops.length * intens);
+      ctx.lineWidth = 1; ctx.lineCap = 'round';
+      for (let i = 0; i < live; i++) {
+        const d = drops[i];
+        ctx.strokeStyle = `rgba(176,200,222,${d.a * rainFade})`;
+        ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - slant * 1.6, d.y - d.len); ctx.stroke();
+      }
+    }
+    if (flash > 0.004) { ctx.fillStyle = `rgba(200,212,235,${flash})`; ctx.fillRect(0, 0, W, H); }
+  }
+
+  /* ---- fireflies (night only) ---- */
+  const flies = [];
+  function initFlies() {
+    flies.length = 0;
+    const count = reduceMotion ? 8 : 24;
+    for (let i = 0; i < count; i++) {
+      flies.push({
+        x: Math.random() * W, y: H * (0.25 + Math.random() * 0.6),
+        r: 1.1 + Math.random() * 1.6,
+        vx: (Math.random() - 0.5) * 0.18, vy: (Math.random() - 0.5) * 0.14,
+        drift: Math.random() * Math.PI * 2, driftSp: 0.004 + Math.random() * 0.01,
+        tw: Math.random() * Math.PI * 2, twSp: 0.02 + Math.random() * 0.05,
+      });
+    }
+  }
+  function updateFlies() {
+    nightFade += ((nightOn ? 1 : 0) - nightFade) * 0.02;
+    if (nightFade < 0.01) return;
+    flies.forEach(f => {
+      f.drift += f.driftSp; f.tw += f.twSp;
+      f.x += f.vx + Math.cos(f.drift) * 0.25 + windStrength * 0.15;
+      f.y += f.vy + Math.sin(f.drift * 0.7) * 0.18;
+      if (f.x < -10) f.x = W + 10; else if (f.x > W + 10) f.x = -10;
+      if (f.y < H * 0.12) f.y = H * 0.12; else if (f.y > H - 10) f.y = H - 10;
+    });
+  }
+  function drawFlies() {
+    if (nightFade < 0.01) return;
+    flies.forEach(f => {
+      const a = (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(f.tw))) * nightFade;
+      const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 5);
+      g.addColorStop(0, `rgba(208,238,150,${a})`);
+      g.addColorStop(1, 'rgba(208,238,150,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `rgba(225,245,180,${Math.min(1, a + 0.15)})`;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+    });
+  }
 
   /* ---- leaves & petals ---- */
   let petals = [];
@@ -254,6 +339,8 @@
     });
     drawDust();
     if (showGrass) drawGrass();
+    updateFlies(); drawFlies();
+    updateRain(); drawRain();
     requestAnimationFrame(frame);
   }
   frame();
