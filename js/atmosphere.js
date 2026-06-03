@@ -31,6 +31,17 @@
   let showGrass = true;   // the swaying wheat — only drawn on the boot screen
   let nightOn = false, nightFade = 0;   // fireflies appear at night
   const reduceMotion = matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- seasons: the wheat + leaf hues change with the month (the wheat is the indicator) ---- */
+  let season = 'summer';
+  const SEASON = {
+    spring: { grass: [120, 170, 85],  head: 'small', leaf: [150, 200, 120], leafAlpha: 0.75, petalBoost: 0.16 },
+    summer: { grass: [78, 128, 58],   head: 'big',   leaf: [120, 165, 105], leafAlpha: 1.0,  petalBoost: 0.0  },
+    autumn: { grass: [176, 128, 46],  head: 'full',  leaf: [206, 124, 48],  leafAlpha: 1.0,  petalBoost: 0.06 },
+    winter: { grass: [122, 126, 110], head: 'none',  leaf: [150, 168, 150], leafAlpha: 0.22, petalBoost: 0.0  },
+  };
+  const S = () => SEASON[season] || SEASON.summer;
+
   const Atmosphere = {
     setBloom(hex, weight) {
       if (hex) bloom = hexToRgb(hex);
@@ -38,9 +49,44 @@
     },
     setGrass(on) { showGrass = !!on; },
     setNight(on) { nightOn = !!on; if (nightOn && !flies.length) initFlies(); },
-    setRain(level) { rainLevel = Math.max(0, Math.min(2, level | 0)); if (rainLevel && !drops.length) initRain(); }
+    setRain(level) { rainLevel = Math.max(0, Math.min(2, level | 0)); if (rainLevel && !drops.length) initRain(); },
+    setSeason(s) { if (SEASON[s]) { season = s; if (s === 'winter' && !snow.length) initSnow(); } }
   };
   window.Atmosphere = Atmosphere;
+
+  /* ---- snow (winter): soft drifting flakes; ambient when dry, heavier when it precipitates ---- */
+  const snow = [];
+  let snowFade = 0;
+  function initSnow() {
+    snow.length = 0;
+    const n = reduceMotion ? 28 : 90;
+    for (let i = 0; i < n; i++) snow.push({
+      x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 2.2,
+      sp: 0.35 + Math.random() * 1.0, sway: Math.random() * Math.PI * 2,
+      swSp: 0.008 + Math.random() * 0.02, a: 0.45 + Math.random() * 0.55,
+    });
+  }
+  function snowLive() { return Math.floor(snow.length * (0.42 + 0.58 * Math.min(1, rainLevel * 0.5))); }
+  function updateSnow() {
+    snowFade += ((season === 'winter' ? 1 : 0) - snowFade) * 0.02;
+    if (snowFade < 0.01) return;
+    const speed = 1 + rainLevel * 0.5, live = snowLive();
+    for (let i = 0; i < live; i++) {
+      const s = snow[i]; s.sway += s.swSp;
+      s.y += s.sp * speed; s.x += Math.sin(s.sway) * 0.5 + windStrength * 0.35;
+      if (s.y > H + 6) { s.y = -6; s.x = Math.random() * W; }
+      if (s.x < -12) s.x = W + 12; else if (s.x > W + 12) s.x = -12;
+    }
+  }
+  function drawSnow() {
+    if (snowFade < 0.01) return;
+    const live = snowLive();
+    for (let i = 0; i < live; i++) {
+      const s = snow[i];
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(228,238,252,${s.a * snowFade * 0.85})`; ctx.fill();
+    }
+  }
 
   /* ---- rain (mirrors real weather) + subtle thunder ---- */
   let rainLevel = 0, rainFade = 0, flash = 0, thunderTimer = 600;
@@ -54,6 +100,7 @@
     }
   }
   function updateRain() {
+    if (season === 'winter') { rainFade += (0 - rainFade) * 0.05; flash += (0 - flash) * 0.2; return; }  // winter precip falls as snow
     rainFade += ((rainLevel ? 1 : 0) - rainFade) * 0.02;
     if (rainFade < 0.01) { flash += (0 - flash) * 0.2; return; }
     const slant = windStrength * 1.2, intens = rainLevel >= 2 ? 1 : 0.62;
@@ -71,6 +118,7 @@
     flash += (0 - flash) * 0.08;
   }
   function drawRain() {
+    if (season === 'winter') return;   // snow handles winter
     if (rainFade > 0.01) {
       const slant = windStrength * 1.2, intens = rainLevel >= 2 ? 1 : 0.62;
       const live = Math.floor(drops.length * intens);
@@ -130,7 +178,7 @@
   function makePetal() {
     const size = 4 + Math.random() * 7;
     const depth = Math.random();
-    const isBloom = Math.random() < bloomWeight;
+    const isBloom = Math.random() < (bloomWeight + S().petalBoost);   // spring sprinkles a few colour petals
     return {
       type: 'leaf', isBloom,
       x: Math.random() * W, y: -20,
@@ -240,8 +288,8 @@
   }
   initGrass();
   function grassColor(a) {
-    // moss -> fern gradient feel
-    return `rgba(80,120,70,${a})`;
+    const gc = S().grass;   // spring green / summer lush / autumn gold / winter grey twig
+    return `rgba(${gc[0]},${gc[1]},${gc[2]},${a})`;
   }
   function drawGrass() {
     if (grassOpacity < 1) grassOpacity = Math.min(1, grassOpacity + 0.004);
@@ -260,30 +308,36 @@
       ctx.quadraticCurveTo(midX, midY, tipX, tipY);
       ctx.strokeStyle = grassColor(a); ctx.lineWidth = g.thick; ctx.stroke();
 
-      const headLen = g.h * 0.18;
-      const angle = Math.atan2(tipY - midY, tipX - midX);
-      ctx.save(); ctx.translate(tipX, tipY); ctx.rotate(angle + Math.PI / 2);
-      ctx.beginPath(); ctx.ellipse(0, 0, g.thick * 1.4, headLen, 0, 0, Math.PI * 2);
-      ctx.fillStyle = grassColor(a * 0.5); ctx.fill();
-      ctx.strokeStyle = grassColor(a * 0.7); ctx.lineWidth = 0.5; ctx.stroke();
-      for (let b = -2; b <= 2; b++) {
-        const bY = b * headLen * 0.3, bLen = headLen * 0.25;
-        ctx.beginPath(); ctx.moveTo(-g.thick, bY); ctx.lineTo(-bLen - g.thick, bY - bLen * 0.6);
-        ctx.strokeStyle = grassColor(a * 0.55); ctx.lineWidth = 0.5; ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(g.thick, bY); ctx.lineTo(bLen + g.thick, bY - bLen * 0.6);
-        ctx.strokeStyle = grassColor(a * 0.55); ctx.lineWidth = 0.5; ctx.stroke();
+      // the ear of wheat — summer fruity / autumn full / spring small bud / winter none (bare twig)
+      const head = S().head;
+      if (head !== 'none') {
+        const hf = head === 'big' ? 1.5 : head === 'full' ? 1.15 : 0.6;
+        const headLen = g.h * 0.18 * hf;
+        const angle = Math.atan2(tipY - midY, tipX - midX);
+        ctx.save(); ctx.translate(tipX, tipY); ctx.rotate(angle + Math.PI / 2);
+        ctx.beginPath(); ctx.ellipse(0, 0, g.thick * 1.4 * hf, headLen, 0, 0, Math.PI * 2);
+        ctx.fillStyle = grassColor(a * 0.5); ctx.fill();
+        ctx.strokeStyle = grassColor(a * 0.7); ctx.lineWidth = 0.5; ctx.stroke();
+        for (let b = -2; b <= 2; b++) {
+          const bY = b * headLen * 0.3, bLen = headLen * 0.25;
+          ctx.beginPath(); ctx.moveTo(-g.thick, bY); ctx.lineTo(-bLen - g.thick, bY - bLen * 0.6);
+          ctx.strokeStyle = grassColor(a * 0.55); ctx.lineWidth = 0.5; ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(g.thick, bY); ctx.lineTo(bLen + g.thick, bY - bLen * 0.6);
+          ctx.strokeStyle = grassColor(a * 0.55); ctx.lineWidth = 0.5; ctx.stroke();
+        }
+        ctx.restore();
       }
-      ctx.restore();
     });
   }
 
   /* ---- drawing leaves / petals ---- */
   function drawLeaf(p) {
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-    ctx.globalAlpha = p.alpha * petalOpacity;
+    ctx.globalAlpha = p.alpha * petalOpacity * (p.isBloom ? 1 : S().leafAlpha);   // winter leaves fade out
     const s = p.size, v = p.variant;
-    const fill = p.isBloom ? `rgba(${bloom.r},${bloom.g},${bloom.b},0.32)` : 'rgba(120,165,105,0.13)';
-    const stroke = p.isBloom ? `rgba(${bloom.r},${bloom.g},${bloom.b},0.6)` : 'rgba(130,180,115,0.24)';
+    const lf = S().leaf;   // seasonal leaf hue (summer green / autumn amber / etc.)
+    const fill = p.isBloom ? `rgba(${bloom.r},${bloom.g},${bloom.b},0.32)` : `rgba(${lf[0]},${lf[1]},${lf[2]},0.13)`;
+    const stroke = p.isBloom ? `rgba(${bloom.r},${bloom.g},${bloom.b},0.6)` : `rgba(${lf[0]},${lf[1]},${lf[2]},0.26)`;
     ctx.beginPath();
     if (v === 0) {
       ctx.moveTo(0, -s); ctx.bezierCurveTo(s*.55,-s*.35, s*.55,s*.35, 0,s);
@@ -341,6 +395,7 @@
     if (showGrass) drawGrass();
     updateFlies(); drawFlies();
     updateRain(); drawRain();
+    updateSnow(); drawSnow();
     requestAnimationFrame(frame);
   }
   frame();

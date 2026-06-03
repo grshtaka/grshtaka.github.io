@@ -108,10 +108,27 @@
     'night-full': '○ full moon · the garden is silvered',
   };
   const RAIN_LINE = { 1: '⛆ rain · the garden drinks', 2: '⛈ storm · the garden trembles' };
-  let lastWorld = '', timeKey = 'day', rainState = 0;
+  function seasonOf(d) { const m = d.getMonth(); return (m >= 2 && m <= 4) ? 'spring' : (m >= 5 && m <= 7) ? 'summer' : (m >= 8 && m <= 10) ? 'autumn' : 'winter'; }
+  const PHASE = {
+    dawn:         { word: 'dawn',      phrase: 'the blooms are waking' },
+    day:          { word: 'afternoon', phrase: 'the world continues elsewhere' },
+    dusk:         { word: 'dusk',      phrase: 'the field turns to amber' },
+    night:        { word: 'night',     phrase: 'the blooms have folded' },
+    'night-full': { word: 'night',     phrase: 'the garden is silvered' },
+  };
+  const SEASON_GLYPH = { spring: '❀', summer: '✿', autumn: '❧', winter: '❄' };
+  let lastWorld = '', timeKey = 'day', rainState = 0, curSeason = '';
   function setWeatherLine() {
     const sb = document.querySelector('#statusbar .sb-right'); if (!sb) return;
-    sb.textContent = rainState ? (RAIN_LINE[rainState] || RAIN_LINE[1]) : (WEATHER[timeKey] || WEATHER.day);
+    const ph = PHASE[timeKey] || PHASE.day, sw = curSeason || 'summer';
+    let glyph = SEASON_GLYPH[sw] || '✿', phrase = ph.phrase;
+    if (rainState) {
+      if (sw === 'winter') { glyph = '❄'; phrase = 'snow is falling'; }
+      else if (rainState >= 2) { glyph = '⛈'; phrase = 'the garden trembles'; }
+      else { glyph = '⛆'; phrase = 'the garden drinks'; }
+    }
+    const art = 'aeiou'.indexOf(sw[0]) >= 0 ? 'an' : 'a';
+    sb.textContent = glyph + ' ' + art + ' ' + sw + ' ' + ph.word + ' · ' + phrase;
   }
   function applyWorld(phase, full) {
     const key = phase + (phase === 'night' && full ? '-full' : '');
@@ -122,6 +139,12 @@
     if (window.Atmosphere) window.Atmosphere.setNight(phase === 'night');
     setWeatherLine();
   }
+  function applySeason(s) {
+    if (s === curSeason) return; curSeason = s;
+    document.documentElement.dataset.season = s;
+    if (window.Atmosphere) window.Atmosphere.setSeason(s);
+    setWeatherLine();
+  }
   function setRain(level) {
     level = level | 0; if (level === rainState) return; rainState = level;
     const root = document.documentElement;
@@ -129,8 +152,9 @@
     if (window.Atmosphere) window.Atmosphere.setRain(level);
     setWeatherLine();
   }
-  window.__setTOD = function (phase, full) { lastWorld = '__'; applyWorld(phase, !!full); };   // dev/testing hook
+  window.__setTOD = function (phase, full) { lastWorld = '__'; applyWorld(phase, !!full); };   // dev/testing hooks
   window.__setRain = function (level) { setRain(level); };
+  window.__setSeason = function (s) { curSeason = '__'; applySeason(s); };
 
   /* real weather for Belgrade, Serbia -> open-meteo (free, no key, no location prompt) */
   const WEATHER_LAT = 44.79, WEATHER_LON = 20.45;   // Belgrade
