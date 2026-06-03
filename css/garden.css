@@ -217,10 +217,17 @@ hr { border: none; border-top: 1px solid var(--line); }
   align-items:center; justify-content:center; }
 #boot[data-phase="off"] .power-screen{ display:flex; }
 /* powered off = nothing but the dark screen + button: hide the atmosphere (fireflies/wheat) and the sky wash */
+/* powered off AND booting = clean dark screen: the atmosphere (fireflies + wheat) and sky wash only
+   appear once the hub/select screen shows. #petals fades in so they ease on. */
+#petals{ transition: opacity 1.1s ease; }
 html:has(#boot.screen.active[data-phase="off"]) #petals,
-html:has(#boot.screen.active[data-phase="off"]) #sky{ display:none; }
-/* keep the CRT tube vignette/glow on the off screen, but no scanlines (::before) — the beam sweeps once on power-up */
+html:has(#boot.screen.active[data-phase="boot"]) #petals{ opacity:0; }
+html:has(#boot.screen.active[data-phase="off"]) #sky,
+html:has(#boot.screen.active[data-phase="boot"]) #sky{ display:none; }
+/* keep the CRT tube vignette, but no scanlines and no bright centre glow (the "lighter box") on the empty screens */
 html:has(#boot.screen.active[data-phase="off"]) #crt::before{ opacity:0; }
+html:has(#boot.screen.active[data-phase="off"]) #crt::after,
+html:has(#boot.screen.active[data-phase="boot"]) #crt::after{ box-shadow: inset 0 0 220px rgba(0,0,0,.6), inset 0 0 50vw rgba(0,0,0,.45); }
 .power-btn{ width:86px; height:86px; border-radius:50%; background:transparent; cursor:pointer;
   border:1.5px solid color-mix(in srgb, var(--moss) 45%, transparent); color:var(--moss);
   font-size:42px; line-height:1; display:grid; place-items:center;
