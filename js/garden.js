@@ -137,12 +137,14 @@
     root.dataset.tod = phase;
     if (phase === 'night' && full) root.dataset.moon = 'full'; else root.removeAttribute('data-moon');
     if (window.Atmosphere) window.Atmosphere.setNight(phase === 'night');
+    if (window.Sound) window.Sound.setWorld(phase, full);
     setWeatherLine();
   }
   function applySeason(s) {
     if (s === curSeason) return; curSeason = s;
     document.documentElement.dataset.season = s;
     if (window.Atmosphere) window.Atmosphere.setSeason(s);
+    if (window.Sound) window.Sound.setSeason(s);
     setWeatherLine();
   }
   function setRain(level) {
@@ -150,6 +152,7 @@
     const root = document.documentElement;
     if (level) root.dataset.weather = 'rain'; else root.removeAttribute('data-weather');
     if (window.Atmosphere) window.Atmosphere.setRain(level);
+    if (window.Sound) window.Sound.setRain(level);
     setWeatherLine();
   }
   window.__setTOD = function (phase, full) { lastWorld = '__'; applyWorld(phase, !!full); };   // dev/testing hooks
@@ -176,6 +179,7 @@
     const t = [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => String(x).padStart(2, '0')).join(':');
     $('status-time').textContent = t;
     const dt = $('door-time'); if (dt) dt.textContent = 'T+' + t;
+    applySeason(seasonOf(n));
     applyWorld(timeOfDay(n.getHours()), moonIsFull(n));
   }
   setInterval(tick, 1000); tick();
@@ -252,10 +256,29 @@
     const boot = $('boot');
     if (boot.dataset.phase !== 'door') return;
     boot.dataset.phase = 'open';
+    if (window.Sound) window.Sound.start();   // the ENTER gesture unlocks + starts the audio
     idleManifold();
   }
   $('hero').addEventListener('click', openDoor);   // the title opens the doors
   $('gate').addEventListener('click', openDoor);   // ...and so do the doors themselves
+
+  // POWER ON: the dark screen + blinking power button. Clicking it unlocks audio (the boot sound),
+  // then the terminal powers on like an old CRT (crt-on: a line stretches wide, then opens vertically),
+  // and the boot log begins typing once the screen has opened.
+  function powerOnClick() {
+    const boot = $('boot'); if (boot.dataset.phase !== 'off') return;
+    boot.dataset.phase = 'boot';
+    if (window.Sound) window.Sound.powerOn();
+    // the CRT comes alive: switch to the steady tube and run the scan beam ONCE across the screen
+    const crt = $('crt');
+    if (crt) {
+      crt.classList.add('crt-run');
+      const scan = crt.querySelector('.crt-scan');
+      if (scan) { scan.classList.remove('sweeping'); void scan.offsetWidth; scan.classList.add('sweeping'); setTimeout(() => scan.classList.remove('sweeping'), 1700); }
+    }
+    setTimeout(runBoot, 650);   // start typing after the CRT power-on animation opens the screen
+  }
+  $('power-screen').addEventListener('click', powerOnClick);
 
   /* ---- THE MANIFOLD PAGE : choose a realm; it grows in, the rest gives way ---- */
   let collection = 'garden';
@@ -330,20 +353,45 @@
     card.classList.remove('lit'); card.removeAttribute('style');
     card.innerHTML = '<span class="placard-hint">— hover to read —</span>';
   }
+  // shared placard fill, used by hover (desktop) and tap-select (touch)
+  function fillPlacard(e, c, hint) {
+    const card = $('placard'); if (!card) return;
+    card.classList.add('lit');
+    card.style.borderColor = `color-mix(in srgb, ${c} 50%, var(--line))`;
+    card.style.background = `color-mix(in srgb, ${c} 9%, transparent)`;
+    card.innerHTML = `<div class="placard-name" style="color:${c}">${e.name.replace('.TXT', '')}</div>`
+      + `<div class="placard-desc">${e.desc || ''}</div>`
+      + (hint ? `<div class="placard-tap">${hint}</div>` : '');
+  }
+  // opening a book riffles its pages (bookOpen); opening a story is its own cue (storyOpen)
+  function cueOpen(e) {
+    if (!window.Sound) return;
+    if ((e.collection || 'garden') === 'library') window.Sound.pages(); else window.Sound.open();
+  }
+  // touch devices have no hover, so a single tap can't both preview and open:
+  // first tap selects (shows the placard), a second tap on the same item opens it.
+  function isTouch() {
+    return (typeof window.__touch === 'boolean') ? window.__touch : !matchMedia('(hover: hover)').matches;
+  }
+  let selectedId = null;
   function wireStageItems(stage, sel) {
-    const card = $('placard');
-    placardIdle();
-    stage.querySelectorAll(sel).forEach(el => {
+    placardIdle(); selectedId = null;
+    const items = stage.querySelectorAll(sel);
+    items.forEach(el => {
       const e = byId[el.dataset.id]; const c = entryBloom(e);
-      el.addEventListener('mouseenter', () => {
-        card.classList.add('lit');
-        card.style.borderColor = `color-mix(in srgb, ${c} 50%, var(--line))`;
-        card.style.background = `color-mix(in srgb, ${c} 9%, transparent)`;
-        card.innerHTML = `<div class="placard-name" style="color:${c}">${e.name.replace('.TXT', '')}</div>`
-          + `<div class="placard-desc">${e.desc || ''}</div>`;
-      });
-      el.addEventListener('mouseleave', placardIdle);
-      el.addEventListener('click', () => openEntry(e.id, true));
+      if (isTouch()) {
+        el.addEventListener('click', () => {
+          if (selectedId === e.id) { cueOpen(e); openEntry(e.id, true); return; }   // second tap opens
+          selectedId = e.id;                                            // first tap selects
+          items.forEach(o => o.classList.remove('sel'));
+          el.classList.add('sel');
+          fillPlacard(e, c, 'tap again to open');
+        });
+      } else {
+        el.addEventListener('mouseenter', () => fillPlacard(e, c));
+        el.addEventListener('mouseleave', placardIdle);
+        el.addEventListener('click', () => { cueOpen(e); openEntry(e.id, true); });
+      }
     });
   }
   $('ht-garden').addEventListener('click', e => { e.preventDefault(); pick('garden'); });
@@ -601,8 +649,8 @@
       // don't hijack clicks on real links/interactive elements inside the page
       if (e.target.closest('a, .widget')) return;
       const side = sideAt(e.clientX);
-      if (side === 'left' && prevEntry) openEntry(prevEntry.id, true);
-      else if (side === 'right' && nextEntry) openEntry(nextEntry.id, true);
+      if (side === 'left' && prevEntry) { if (window.Sound) window.Sound.turn(); openEntry(prevEntry.id, true); }
+      else if (side === 'right' && nextEntry) { if (window.Sound) window.Sound.turn(); openEntry(nextEntry.id, true); }
     });
   })();
 
@@ -631,5 +679,5 @@
   })();
 
   /* ---- go ---- */
-  addEventListener('load', runBoot);
+  // the page now waits on the power-on screen (data-phase="off"); runBoot fires from powerOnClick
 })();

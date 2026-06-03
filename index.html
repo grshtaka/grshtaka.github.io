@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/garden.css?v=74">
+<link rel="stylesheet" href="css/garden.css?v=78">
 </head>
 <body>
 
@@ -17,12 +17,17 @@
 <canvas id="petals" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
 
 <!-- CRT: single overlay over the entire page -->
-<div id="crt" class="crt-boot" aria-hidden="true"><div class="crt-mask"></div><div class="crt-scan"></div></div>
+<div id="crt" aria-hidden="true"><div class="crt-mask"></div><div class="crt-scan"></div></div>
 
 <div id="cursor"></div>
 
 <!-- ARRIVAL + HUB · one continuous screen: terminal boots -> closes -> ENTER opens the page -> realms -->
-<div id="boot" class="screen active" data-phase="boot">
+<div id="boot" class="screen active" data-phase="off">
+
+  <!-- POWER ON — dark screen + blinking power button; click powers on the CRT (only while data-phase=off) -->
+  <div class="power-screen" id="power-screen">
+    <button class="power-btn" id="power-btn" type="button" aria-label="power on">⏻</button>
+  </div>
 
   <!-- BOOT — framed terminal (only while data-phase=boot) -->
   <div class="terminal" id="terminal">
@@ -100,12 +105,14 @@
   <span id="status-time"></span>
   <span class="sb-far">
     <span class="sb-right">THE WORLD CONTINUES ELSEWHERE</span>
+    <a class="sb-sound" id="sound-link" href="#" title="sound">♪</a>
     <a class="sb-editor" id="editor-link" href="editor.html" title="open the editor">✶</a>
   </span>
 </div>
 
 <script src="data/entries.js?v=56"></script>
-<script src="js/atmosphere.js?v=14"></script>
-<script src="js/garden.js?v=66"></script>
+<script src="js/atmosphere.js?v=15"></script>
+<script src="js/sound.js?v=9"></script>
+<script src="js/garden.js?v=71"></script>
 </body>
 </html>

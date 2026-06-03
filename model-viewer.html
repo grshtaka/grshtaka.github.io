@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE MANIFOLD · 3D MODEL TEST BENCH</title>
+<meta name="robots" content="noindex">
+
+<!-- Google's <model-viewer> web component: zero-JS .glb preview. Pinned version, ESM from CDN. -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+
+<style>
+  :root{
+    --bg:#04060423; --bg-2:#070b07; --ink:#c4ea98; --moss:#86ad64; --sage:#bce08e;
+    --dim:#5e7d4f; --line:#21331a; --bg-solid:#040604;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{
+    background:
+      radial-gradient(120% 80% at 50% 0%, #0a120a 0%, var(--bg-solid) 70%),
+      var(--bg-solid);
+    color:var(--sage); font-family:"VT323","Courier New",monospace;
+    display:flex; flex-direction:column; min-height:100vh; letter-spacing:.4px;
+  }
+  a{ color:var(--moss); }
+
+  header{ padding:18px 22px 12px; border-bottom:1px solid var(--line); }
+  h1{ margin:0; font-size:clamp(20px,3.2vw,30px); color:var(--sage); letter-spacing:2px;
+      text-shadow:0 0 10px rgba(150,200,120,.35); }
+  header .sub{ margin:4px 0 0; color:var(--dim); font-size:15px; }
+  header .sub a{ text-decoration:none; border-bottom:1px dotted var(--moss); }
+
+  .controls{ display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center;
+    padding:12px 22px; border-bottom:1px solid var(--line); background:rgba(8,14,8,.4); }
+  .controls label{ color:var(--moss); font-size:14px; letter-spacing:1px; }
+  .field{ display:flex; align-items:center; gap:8px; }
+  input[type=text]{ background:rgba(120,170,110,.05); color:var(--sage);
+    border:1px solid var(--line); border-radius:3px; padding:7px 10px;
+    font-family:inherit; font-size:16px; min-width:240px; }
+  input[type=text]:focus{ outline:1px solid var(--moss); border-color:var(--moss); }
+  input[type=file]{ color:var(--moss); font-family:inherit; font-size:14px; max-width:230px; }
+  button{ background:rgba(120,170,110,.10); color:var(--sage); border:1px solid var(--moss);
+    border-radius:3px; padding:7px 16px; font-family:inherit; font-size:16px; letter-spacing:1px; cursor:pointer; }
+  button:hover{ background:rgba(120,170,110,.2); text-shadow:0 0 8px rgba(150,200,120,.5); }
+  .sep{ width:1px; height:22px; background:var(--line); }
+
+  .stage{ flex:1; position:relative; min-height:340px; }
+  model-viewer{ width:100%; height:100%; position:absolute; inset:0;
+    --poster-color:transparent; background:transparent; }
+  /* model-viewer's built-in progress bar, tinted to the palette */
+  model-viewer::part(default-progress-bar){ background:var(--moss); }
+  model-viewer::part(default-progress-mask){ background:rgba(0,0,0,.35); }
+
+  /* --- demo hotspot button (sample astronaut only) --- */
+  [slot^="hotspot"]{ border:none; background:transparent; }
+  model-viewer:not(.demo) [slot^="hotspot"]{ display:none; }
+  model-viewer:not(.demo) ~ .demo-hint{ display:none; }
+  .hs-btn{ width:22px; height:22px; border-radius:50%; cursor:pointer; padding:0;
+    background:radial-gradient(circle at 35% 32%, #ffd98a, #c2581f 72%);
+    box-shadow:0 0 0 2px rgba(0,0,0,.45), 0 0 10px 2px rgba(255,170,70,.65);
+    transition:transform .14s ease, box-shadow .2s ease; }
+  .hs-btn:hover{ transform:scale(1.2); box-shadow:0 0 0 2px rgba(0,0,0,.45), 0 0 16px 5px rgba(255,195,95,.9); }
+  .hs-btn:active{ transform:scale(.92); }
+  .hs-btn::before{ content:""; position:absolute; left:50%; top:50%; width:22px; height:22px;
+    border-radius:50%; border:2px solid rgba(255,205,120,.9); transform:translate(-50%,-50%) scale(1);
+    opacity:0; pointer-events:none; }
+  .hs-btn.ping::before{ animation:btnPing .6s ease-out; }
+  @keyframes btnPing{ 0%{ opacity:.9; transform:translate(-50%,-50%) scale(1);} 100%{ opacity:0; transform:translate(-50%,-50%) scale(4.2);} }
+  .hs-btn::after{ content:"PRESS"; position:absolute; left:50%; top:150%; transform:translateX(-50%);
+    font:13px/1 "VT323","Courier New",monospace; color:#ffce8a; letter-spacing:1px; white-space:nowrap;
+    text-shadow:0 0 6px rgba(0,0,0,.85); pointer-events:none; }
+  .demo-hint{ position:absolute; left:18px; bottom:14px; color:var(--moss); font-size:15px;
+    letter-spacing:.5px; text-shadow:0 0 8px rgba(0,0,0,.7); pointer-events:none; }
+  .demo-hint b{ color:var(--sage); font-weight:normal; }
+
+  .err{ position:absolute; left:50%; top:14px; transform:translateX(-50%);
+    background:rgba(40,8,8,.85); border:1px solid #7a3a2a; color:#e0a48a;
+    padding:8px 14px; border-radius:4px; font-size:15px; display:none; max-width:90%; }
+  .err.show{ display:block; }
+
+  footer{ border-top:1px solid var(--line); padding:14px 22px 22px; color:var(--dim);
+    font-size:14.5px; line-height:1.55; background:rgba(6,11,6,.5); }
+  footer b{ color:var(--moss); font-weight:normal; }
+  footer code{ color:var(--sage); background:rgba(120,170,110,.08);
+    padding:1px 5px; border-radius:3px; font-size:13.5px; }
+  footer ul{ margin:6px 0 0; padding-left:20px; }
+  footer .cols{ display:flex; flex-wrap:wrap; gap:6px 40px; }
+  footer .cols > div{ flex:1; min-width:260px; }
+</style>
+</head>
+<body>
+
+  <header>
+    <h1>3D MODEL TEST BENCH</h1>
+    <p class="sub">drop a <code style="all:unset;color:var(--sage)">.glb</code> in here to spin it · unlisted scratchpad · <a href="index.html">↩ the manifold</a></p>
+  </header>
+
+  <div class="controls">
+    <div class="field">
+      <label for="path">load from path</label>
+      <input type="text" id="path" placeholder="assets/yourmodel.glb" spellcheck="false">
+      <button type="button" id="load-path">load</button>
+    </div>
+    <span class="sep"></span>
+    <div class="field">
+      <label for="file">or pick a local file</label>
+      <input type="file" id="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json">
+    </div>
+    <span class="sep"></span>
+    <button type="button" id="reset">sample model</button>
+  </div>
+
+  <div class="stage">
+    <div class="err" id="err"></div>
+    <model-viewer id="mv"
+      camera-controls
+      auto-rotate
+      auto-rotate-delay="0"
+      rotation-per-second="18deg"
+      touch-action="pan-y"
+      interaction-prompt="none"
+      shadow-intensity="1"
+      shadow-softness="0.8"
+      exposure="1.05"
+      environment-image="neutral"
+      ar
+      alt="3D model preview">
+
+      <!-- DEMO (sample astronaut only): a clickable button anchored to his chest.
+           Pressing it does something visible -> proves the pick-a-part / react loop the 3D shelf will use. -->
+      <button class="hs-btn" slot="hotspot-chest"
+              data-position="-0.17 1.06 -0.01" data-normal="-0.78 0.04 -0.62"
+              title="press"></button>
+    </model-viewer>
+    <div class="demo-hint" id="demo-hint">sample demo · click the <b>button on his chest</b></div>
+  </div>
+
+  <footer>
+    <div class="cols">
+      <div>
+        <b>How to use</b>
+        <ul>
+          <li><b>Local file:</b> pick a <code>.glb</code> to preview it instantly — nothing gets committed.</li>
+          <li><b>From the repo:</b> drop the file in <code>assets/</code>, type <code>assets/name.glb</code>, hit <b>load</b>.</li>
+          <li>Drag to orbit · scroll/pinch to zoom · it auto-spins.</li>
+        </ul>
+      </div>
+      <div>
+        <b>Make models that behave on the web</b>
+        <ul>
+          <li>Export a single <b><code>.glb</code></b> (textures embedded), not <code>.gltf</code>+<code>.bin</code>.</li>
+          <li>Keep it <b>low-poly</b> and textures small — aim for a few hundred KB, not tens of MB.</li>
+          <li><b>Apply transforms / real-world scale</b> before export (or it imports huge/tiny).</li>
+          <li>Bake lighting/AO into the texture if you want it to read well unlit.</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  (function () {
+    var mv = document.getElementById('mv');
+    var err = document.getElementById('err');
+    var pathInput = document.getElementById('path');
+    var fileInput = document.getElementById('file');
+    // a public sample so the bench works before you have any model of your own
+    var SAMPLE = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
+    var objectUrl = null;   // track the local-file blob URL so we can revoke it
+
+    function clearBlob() { if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; } }
+    function showErr(msg) { err.textContent = msg; err.classList.add('show'); }
+    function hideErr() { err.classList.remove('show'); }
+
+    function setSrc(src, label) {
+      hideErr();
+      mv.src = src;
+      mv.exposure = 1.05;
+      mv.classList.toggle('demo', /Astronaut\.glb/i.test(src));   // hotspot demo only on the sample
+      document.title = 'TEST BENCH · ' + (label || src);
+    }
+
+    // pressing the chest button does something visible: a glow-flash over the whole model + a ripple
+    var chest = mv.querySelector('.hs-btn');
+    function flash() {
+      var t0 = performance.now();
+      (function step(now) {
+        var k = (now - t0) / 600;
+        if (k >= 1) { mv.exposure = 1.05; return; }
+        mv.exposure = 1.05 + Math.sin(Math.PI * k) * 1.5;   // up then back down
+        requestAnimationFrame(step);
+      })(performance.now());
+    }
+    if (chest) chest.addEventListener('click', function () {
+      chest.classList.remove('ping'); void chest.offsetWidth; chest.classList.add('ping');
+      flash();
+    });
+
+    mv.addEventListener('error', function () {
+      showErr('could not load that model — check the path / that it is a valid .glb');
+    });
+    mv.addEventListener('load', hideErr);
+
+    document.getElementById('load-path').addEventListener('click', function () {
+      var p = pathInput.value.trim();
+      if (!p) { showErr('type a path first, e.g. assets/yourmodel.glb'); return; }
+      clearBlob();
+      setSrc(p, p);
+    });
+    pathInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') document.getElementById('load-path').click();
+    });
+
+    fileInput.addEventListener('change', function () {
+      var f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      clearBlob();
+      objectUrl = URL.createObjectURL(f);
+      setSrc(objectUrl, f.name);
+    });
+
+    document.getElementById('reset').addEventListener('click', function () {
+      clearBlob();
+      fileInput.value = '';
+      setSrc(SAMPLE, 'sample (Astronaut)');
+    });
+
+    // start on the sample
+    setSrc(SAMPLE, 'sample (Astronaut)');
+  })();
+</script>
+</body>
+</html>

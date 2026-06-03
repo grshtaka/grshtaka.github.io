@@ -68,7 +68,7 @@ body {
 /* ---------- the breathing world: time-of-day wash + moon (set via html[data-tod] / [data-moon]) ---------- */
 /* sits BEHIND the content (z-index:0) so it tints the field without dimming text; kept gentle */
 #sky{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0;
-  transition: background 2.5s ease, opacity 2.5s ease; }
+  transition: background 2.5s ease, opacity 2.5s ease, box-shadow 2.5s ease; }
 html[data-tod="dawn"] #sky{ opacity:1;
   background: radial-gradient(130% 80% at 50% 115%, rgba(232,177,90,.11), transparent 62%); }
 html[data-tod="dusk"] #sky{ opacity:1;
@@ -91,6 +91,13 @@ html[data-tod="night"] #sky::after{ content:"\263E"; font-size:38px; color:#dfe6
   text-shadow:0 0 18px rgba(210,225,250,.55); }
 html[data-tod="night"][data-moon="full"] #sky::after{ content:"\25CB"; font-size:46px; color:#eef2ff;
   text-shadow:0 0 28px rgba(225,235,255,.9); }
+/* seasons: a VERY faint light-shift rising from the field — visible year-round (even clear day);
+   green stays dominant. Driven by html[data-season]; the wheat (atmosphere.js) is the real tell. */
+html[data-season] #sky{ opacity:1; }
+html[data-season="spring"] #sky{ box-shadow: inset 0 -24vh 32vh -16vh rgba(150,210,120,.07); }
+html[data-season="summer"] #sky{ box-shadow: inset 0 -24vh 32vh -16vh rgba(120,200,110,.05); }
+html[data-season="autumn"] #sky{ box-shadow: inset 0 -24vh 32vh -16vh rgba(210,150,60,.08); }
+html[data-season="winter"] #sky{ box-shadow: inset 0 -24vh 32vh -16vh rgba(150,180,220,.07); }
 
 a { color: var(--sage); text-decoration: none; }
 a:hover {
@@ -203,8 +210,29 @@ hr { border: none; border-top: 1px solid var(--line); }
 /* ---------- ENTRANCE + HUB · one continuous screen, full-viewport sections ---------- */
 /* boot phase = the terminal centered in the viewport; door/open = stacked 100vh sections */
 #boot.active, #boot.leaving { position: relative; }
-#boot[data-phase="boot"]{ display:flex; align-items:center; justify-content:center; min-height:100vh; }
+#boot[data-phase="off"], #boot[data-phase="boot"]{ display:flex; align-items:center; justify-content:center; min-height:100vh; }
+
+/* POWER ON: a dark screen with a single blinking power button, before the boot */
+.power-screen{ display:none; position:fixed; inset:0; z-index:30; background:var(--bg);
+  align-items:center; justify-content:center; }
+#boot[data-phase="off"] .power-screen{ display:flex; }
+/* powered off = nothing but the dark screen + button: hide the atmosphere (fireflies/wheat) and the sky wash */
+html:has(#boot.screen.active[data-phase="off"]) #petals,
+html:has(#boot.screen.active[data-phase="off"]) #sky{ display:none; }
+/* keep the CRT tube vignette/glow on the off screen, but no scanlines (::before) — the beam sweeps once on power-up */
+html:has(#boot.screen.active[data-phase="off"]) #crt::before{ opacity:0; }
+.power-btn{ width:86px; height:86px; border-radius:50%; background:transparent; cursor:pointer;
+  border:1.5px solid color-mix(in srgb, var(--moss) 45%, transparent); color:var(--moss);
+  font-size:42px; line-height:1; display:grid; place-items:center;
+  text-shadow:0 0 14px color-mix(in srgb, var(--moss) 60%, transparent);
+  box-shadow:0 0 22px color-mix(in srgb, var(--moss) 22%, transparent) inset, 0 0 18px color-mix(in srgb, var(--moss) 16%, transparent);
+  animation: blink 1.7s steps(2) infinite; transition:color .2s, border-color .2s, box-shadow .2s; }
+.power-btn:hover{ animation:none; color:var(--sage); border-color:var(--sage);
+  box-shadow:0 0 26px color-mix(in srgb, var(--sage) 30%, transparent) inset, 0 0 26px color-mix(in srgb, var(--sage) 24%, transparent); }
+/* the terminal powers on like an old CRT (line stretches wide, then opens vertically) */
+#boot[data-phase="boot"] .terminal{ animation: crt-on .6s ease both; transform-origin:center; }
 /* the entrance (boot + closed door) doesn't scroll — only the opened hub scrolls down to the explanation */
+html:has(#boot.screen.active[data-phase="off"]),
 html:has(#boot.screen.active[data-phase="boot"]),
 html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 
@@ -288,8 +316,9 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 @keyframes crt-on  { 0%{transform:scale(.35,.01);opacity:0;filter:brightness(2.6)} 45%{transform:scale(1,.02);opacity:1;filter:brightness(1.8)} 100%{transform:scale(1,1);opacity:1;filter:brightness(1)} }
 
 @media (prefers-reduced-motion: reduce) {
-  .screen.active, .screen.leaving, .terminal.powering-off,
+  .screen.active, .screen.leaving, .terminal.powering-off, #boot[data-phase="boot"] .terminal,
   #boot[data-phase="door"] .hero, #boot[data-phase="door"] .gate { animation-duration:.01ms !important; }
+  .power-btn{ animation:none !important; }
   .hero, .hub-stage, .gate .leaf { transition-duration:.01ms !important; }
 }
 
@@ -324,6 +353,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
   border-bottom:1px solid color-mix(in srgb, currentColor 35%, var(--line)); text-shadow:0 0 9px currentColor; }
 .placard .placard-desc{ color:var(--moss); font-size:23px; line-height:1.6; }
 .placard .placard-hint{ color:var(--dim); font-size:16px; opacity:.55; letter-spacing:1px; }
+.placard .placard-tap{ color:var(--moss); font-size:15px; opacity:.7; letter-spacing:1px; margin-top:7px; }
 
 /* the explanation — its own full-screen section below the hub (scroll down -> it's right there at the top) */
 .mp-desc{ display:none; min-height:100vh; flex-direction:column; justify-content:flex-start; align-items:center;
@@ -354,6 +384,9 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 .bloom .bname{ font-size:14px; color:var(--ink); margin-top:5px; }
 .bloom:hover .flower{ transform:translateY(-8px) scale(1.14); text-shadow:0 0 16px var(--c),0 0 32px var(--c); }
 .bloom:hover .bname{ color:var(--c); }
+/* touch tap-select cue (mirrors hover): the first-tapped item stays lifted + ringed */
+.bloom.sel .flower{ transform:translateY(-8px) scale(1.14); text-shadow:0 0 16px var(--c),0 0 32px var(--c); }
+.bloom.sel .bname{ color:var(--c); }
 /* a gif used as the bloom: circular, zoomed-in to fill, soft overall glow (no outline) */
 .bloom .flower-gif{ width:clamp(46px,5.5vw,60px); height:clamp(46px,5.5vw,60px); border-radius:50%;
   object-fit:cover; display:block; margin:0 auto;
@@ -376,6 +409,8 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
   color:color-mix(in srgb,var(--c) 25%, #fff); font-size:14px; letter-spacing:2px; padding:10px 0;
   text-shadow:0 0 4px rgba(0,0,0,.7); }
 .book:hover{ transform:translateY(-16px); box-shadow:0 0 24px color-mix(in srgb,var(--c) 60%, transparent); }
+.book.sel{ transform:translateY(-12px); box-shadow:0 0 22px color-mix(in srgb,var(--c) 60%, transparent);
+  outline:1px solid color-mix(in srgb,var(--c) 60%, transparent); }
 /* a gif used as the book cover: zoomed-in, tinted to the book's colour, with a coloured spine strip + vertical title */
 .book.has-gif{ background-size:cover; background-position:center; background-repeat:no-repeat; overflow:hidden;
   border-color:color-mix(in srgb,var(--c) 55%, #000); }
@@ -631,6 +666,10 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 /* deliberately faint; no hover highlight at all (cancels the global a:hover too) */
 #statusbar .sb-editor { color: var(--dim); cursor: none; font-size: 15px; line-height: 1; opacity: .38; }
 #statusbar .sb-editor:hover { color: var(--dim); opacity: .38; text-decoration: none; text-shadow: none; }
+/* the faint ♪ sound toggle — same restraint as the editor star; muted = struck through */
+#statusbar .sb-sound { color: var(--moss); cursor: none; font-size: 15px; line-height: 1; opacity: .5; }
+#statusbar .sb-sound:hover { color: var(--moss); opacity: .5; text-decoration: none; text-shadow: none; }
+#statusbar .sb-sound.muted { color: var(--dim); opacity: .3; text-decoration: line-through; }
 
 /* ---------- mobile sanity ---------- */
 @media (max-width: 640px) {

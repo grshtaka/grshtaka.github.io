@@ -113,6 +113,7 @@
     // thunder: occasional pale flash (rarer for drizzle, more for storms)
     if (!reduceMotion && --thunderTimer <= 0) {
       flash = rainLevel >= 2 ? 0.32 : 0.16;
+      if (window.Sound) window.Sound.thunder(rainLevel);   // rumble synced to the flash
       thunderTimer = (rainLevel >= 2 ? 360 : 900) + Math.floor(Math.random() * 1200);
     }
     flash += (0 - flash) * 0.08;
