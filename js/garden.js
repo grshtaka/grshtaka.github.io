@@ -77,12 +77,7 @@
     }
     next.classList.add('active');
     scrollTo(0, 0);
-    // CRT beam: slow warm-up band on the boot screen, fast thin line everywhere else
-    const crt = $('crt');
-    if (crt) {
-      crt.classList.toggle('crt-boot', id === 'boot');
-      crt.classList.toggle('crt-run', id !== 'boot');
-    }
+    // CRT mode is driven by the boot phase (warm band only while actually booting; set in finishBoot)
     // swaying wheat is heavy — only render it on the boot screen
     if (window.Atmosphere) window.Atmosphere.setGrass(id === 'boot');
   }
@@ -222,7 +217,10 @@
     const term = $('terminal');
     setTimeout(() => {
       term.classList.add('powering-off');
-      setTimeout(() => { $('boot').dataset.phase = 'door'; }, 620);
+      setTimeout(() => {
+        $('boot').dataset.phase = 'door';
+        const crt = $('crt'); if (crt) { crt.classList.remove('crt-boot'); crt.classList.add('crt-run'); }   // warm band off; idle scan (random sweeps)
+      }, 620);
     }, 480);
   }
   // ENTER -> open the whole page in place (part the doors); no screen swap, so the title can't move
@@ -593,6 +591,20 @@
     clearBloom();
     $('status-file').textContent = 'THE MANIFOLD';
   }
+
+  /* ---- the refresh beam: one slow sweep at a random 1–2 minute interval (not constant) ---- */
+  (function scanBeam() {
+    if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    function sweep() {
+      const crt = $('crt'), scan = crt && crt.querySelector('.crt-scan');
+      if (scan && crt.classList.contains('crt-run')) {
+        scan.classList.remove('sweeping'); void scan.offsetWidth; scan.classList.add('sweeping');
+        setTimeout(() => scan.classList.remove('sweeping'), 1700);
+      }
+      setTimeout(sweep, 60000 + Math.random() * 60000);   // next in 1–2 min
+    }
+    setTimeout(sweep, 20000 + Math.random() * 40000);     // first a while after arrival
+  })();
 
   /* ---- go ---- */
   addEventListener('load', runBoot);

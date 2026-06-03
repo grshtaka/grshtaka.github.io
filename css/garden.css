@@ -10,16 +10,16 @@
 
 :root {
   /* botanical multi-green field (near-black base) */
-  --bg:    #020302;
-  --bg-2:  #060a06;
+  --bg:    #010201;
+  --bg-2:  #040704;
   --fern:  #3f6b3a;
-  --moss:  #779a60;
-  --sage:  #b6cf9f;
-  --olive: #cdd69a;
+  --moss:  #86ad64;
+  --sage:  #bce08e;
+  --olive: #d8e58c;
   --dim:   #324427;
   --line:  #16201400;       /* fallback overridden below */
   --line:  rgba(120,170,110,0.10);
-  --ink:   #c6dcab;         /* default body text */
+  --ink:   #c4ea98;         /* default body text */
 
   /* per-section bloom colors */
   --bloom-about:     #9bb08a; /* sage   */
@@ -57,9 +57,12 @@ body {
   min-height: 100vh;
   padding: 3vh 3vw 8vh;
   overflow-x: hidden;
-  /* phosphor: every glyph blooms softly in its own colour (inherited; bright elements override) */
-  text-shadow: 0 0 1px color-mix(in srgb, currentColor 55%, transparent),
-               0 0 8px color-mix(in srgb, currentColor 32%, transparent);
+  /* phosphor, two halos: a TIGHT bright core right on the glyph (emphasis, no blur) +
+     a SOFT low-alpha halo around it (ambient glow that doesn't dilute the letters) */
+  text-shadow: 0 0 1px  color-mix(in srgb, color-mix(in srgb, currentColor 40%, #fff) 100%, transparent),
+               0 0 2px  color-mix(in srgb, currentColor 92%, transparent),
+               0 0 12px color-mix(in srgb, currentColor 30%, transparent),
+               0 0 28px color-mix(in srgb, currentColor 16%, transparent);
 }
 
 /* ---------- the breathing world: time-of-day wash + moon (set via html[data-tod] / [data-moon]) ---------- */
@@ -160,21 +163,22 @@ hr { border: none; border-top: 1px solid var(--line); }
   animation: crt-warm 2.2s cubic-bezier(.55,0,.95,.28) infinite;
 }
 /* RUNNING: a faint wash that streaks past almost subliminally */
+/* RUNNING: idle (hidden); a single beam sweeps past only when JS adds .sweeping (random 1–2 min) */
 #crt.crt-run .crt-scan {
-  height: 34px; opacity: .13;
+  height: 46px; opacity: 0;
   background: linear-gradient(to bottom,
               rgba(195,250,180,0)    0%,
               rgba(205,255,190,0.06) 40%,
-              rgba(215,255,200,0.13) 50%,
+              rgba(215,255,200,0.14) 50%,
               rgba(205,255,190,0.06) 60%,
               rgba(195,250,180,0)    100%);
-  filter: blur(11px);
-  animation: crt-fast 0.09s linear infinite;
+  filter: blur(8px);
 }
+#crt.crt-run .crt-scan.sweeping { animation: crt-sweep 1.5s ease-in-out; }
 @keyframes crt-flicker { 0%{opacity:.12} 50%{opacity:.16} 100%{opacity:.14} }
 @keyframes crt-static { 0%{background-position:0 -2000px} 100%{background-position:0 1500px} }
 @keyframes crt-warm { 0%{ transform: translateY(-110%); } 100%{ transform: translateY(380%); } }
-@keyframes crt-fast { 0%{ transform: translateY(-10px); } 100%{ transform: translateY(102vh); } }
+@keyframes crt-sweep { 0%{ transform: translateY(-16vh); opacity:0 } 12%{ opacity:.5 } 88%{ opacity:.5 } 100%{ transform: translateY(106vh); opacity:0 } }
 
 /* ---------- custom crosshair cursor ---------- */
 #cursor {
