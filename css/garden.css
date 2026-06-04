@@ -665,7 +665,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 #statusbar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
   display: flex; gap: 4vw; align-items: center;
-  padding: 7px 3vw; font-size: 17px; color: var(--moss);
+  padding: 7px 3vw; font-size: 18px; color: var(--moss);
   background: var(--bg); border-top: 1px solid var(--line);
   /* override the body's wide phosphor halo here — those 12/28px glows smear the small
      status-bar text. Keep only a tight 1px core so it stays crisp. */
@@ -673,7 +673,7 @@ html:has(#boot.screen.active[data-phase="door"]){ overflow:hidden; }
 }
 #statusbar .live { color: var(--sage); }
 #statusbar .sb-far { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-#statusbar .sb-right { color: var(--moss); opacity: .72; }
+#statusbar .sb-right { color: var(--moss); opacity: .92; }
 /* deliberately faint; no hover highlight at all (cancels the global a:hover too) */
 #statusbar .sb-editor { color: var(--dim); cursor: none; font-size: 15px; line-height: 1; opacity: .38; }
 #statusbar .sb-editor:hover { color: var(--dim); opacity: .38; text-decoration: none; text-shadow: none; }
