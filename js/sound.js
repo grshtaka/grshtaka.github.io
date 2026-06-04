@@ -47,17 +47,18 @@
   try { muted = localStorage.getItem('manifold_muted') === '1'; } catch (e) {}
 
   var MASTER_VOL = 0.26;          // overall ceiling — keeps the layer ambient
-  var AMB_CENTER = 0.10;          // the bed hovers around ~10% …
-  var AMB_MIN = 0.05, AMB_MAX = 0.18;   // … drifting between these, never past 0.20
+  var AMB_CENTER = 0.07;          // beds USUALLY sit ~7% …
+  var AMB_MIN = 0.0, AMB_MAX = 0.12;    // … drifting anywhere from full silence (0) up to 12% — occasional deep fades in/out
+  var AMB_HARD_CAP = 0.20;        // ALL ambient-<phase> beds must never exceed 20%
   var CUE_VOL = 0.9;
   var MAX_ONESHOT_SEC = 6;        // cap one-shot playback so long files don't drone (you needn't trim them)
 
   var world = { phase: 'day', full: false, season: 'summer', rain: 0 };
   var ambient = null;                              // synth bed nodes
   var ambGain = null, loopGain = null;             // shared ambient volume + file-loop bus
-  var curLoopSrc = null, curLoopKey = null;
+  var curLoopSrc = null, curLoopKey = null, curLoopGain = null, curLoopBuf = null;
   var rainFileGain = null, rainSrc = null, rainStarted = false;
-  var breatheTimer = null, overlayTimer = null, chimesTimer = null, preloaded = false;
+  var breatheTimer = null, overlayTimer = null, chimesTimer = null, ambientRotTimer = null, preloaded = false;
 
   function now() { return ctx ? ctx.currentTime : 0; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -271,7 +272,7 @@
   function overlayTick() {
     if (!ctx) { overlayTimer = setTimeout(overlayTick, 60000); return; }
     var b = pickBuffer('overlay');
-    if (b) playEased(b, 0.03 + Math.random() * 0.05, 2.5, 3);     // peak ~0.03–0.08, ease in/out
+    if (b) playEased(b, Math.min(0.25, 0.08 + Math.random() * 0.17), 2.5, 3);   // 'ambient'/'ambient2' overlay: peak ~8–25%, ease in/out
     overlayTimer = setTimeout(overlayTick, (30 + Math.random() * 50) * 1000);   // every ~30–80 s
   }
   // wind chimes — rare; eases in, stays quiet (≤7%), eases away
@@ -309,13 +310,20 @@
     applyWorld();
   }
 
-  // slow random drift of the bed's volume around ~10% (re-targets every 20–45 s)
+  // slow random drift of the bed's volume — a triangular walk CENTRED on AMB_CENTER (~7%):
+  // usually near 7%, occasionally all the way down to 0 (a full fade to silence) or up to
+  // AMB_MAX (12%). Extremes are rare → it reads as "usually ~7, breathing in and out".
   function breatheTick() {
     if (!ctx || !ambGain) return;
-    var t = now(), target = AMB_MIN + Math.random() * (AMB_MAX - AMB_MIN), dur = 20 + Math.random() * 25;
+    var t = now();
+    var s = Math.random() - Math.random();            // triangular [-1,1], peaks at 0
+    var target = (s < 0) ? AMB_CENTER + s * (AMB_CENTER - AMB_MIN)   // down toward 0
+                         : AMB_CENTER + s * (AMB_MAX - AMB_CENTER);  // up toward 12%
+    target = Math.max(AMB_MIN, Math.min(AMB_HARD_CAP, target));      // never below 0, never past 20%
+    var dur = 14 + Math.random() * 24;                // re-target every ~14–38 s
     ambGain.gain.cancelScheduledValues(t);
     ambGain.gain.setValueAtTime(ambGain.gain.value, t);
-    ambGain.gain.linearRampToValueAtTime(target, t + dur);
+    ambGain.gain.linearRampToValueAtTime(target, t + dur);          // linear → can reach a true 0 (silence)
     breatheTimer = setTimeout(breatheTick, dur * 1000);
   }
 
@@ -334,15 +342,34 @@
     updateRainSource();
   }
 
+  // start a new loop buffer on its OWN gain, crossfading away whatever was playing.
+  // each loop gets a private gain so the outgoing & incoming clips overlap-fade cleanly
+  // (no click). all loops feed the loopGain bus → breathing ambGain.
+  function startLoop(buf, fade) {
+    if (!ctx || !loopGain || !buf) return;
+    var t = now();
+    if (curLoopSrc && curLoopGain) {                  // fade the old loop out, then stop it
+      try {
+        curLoopGain.gain.cancelScheduledValues(t);
+        curLoopGain.gain.setValueAtTime(curLoopGain.gain.value, t);
+        curLoopGain.gain.linearRampToValueAtTime(0.0001, t + fade);
+        curLoopSrc.stop(t + fade + 0.05);
+      } catch (e) {}
+    }
+    var g = ctx.createGain(); g.gain.value = 0.0001; g.connect(loopGain);
+    var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g); src.start(t);
+    g.gain.linearRampToValueAtTime(1, t + fade);      // fade the new loop in
+    curLoopSrc = src; curLoopGain = g; curLoopBuf = buf;
+  }
+
   // pick synth bed vs a per-phase file loop; the chosen one feeds the breathing ambGain
   function updateAmbientSource() {
     if (!ctx || !ambient) return;
     var t = now(), slot = 'ambient' + cap(world.phase), b = poolReady(slot) ? pickBuffer(slot) : null;
     if (b) {
-      if (curLoopKey !== slot) {
-        if (curLoopSrc) { try { curLoopSrc.stop(t + 1.2); } catch (e) {} }
-        var src = ctx.createBufferSource(); src.buffer = b; src.loop = true; src.connect(loopGain); src.start(t);
-        curLoopSrc = src; curLoopKey = slot;
+      if (curLoopKey !== slot) {                      // phase changed → crossfade to its bed
+        startLoop(b, 1.2);
+        curLoopKey = slot;
       }
       loopGain.gain.setTargetAtTime(1, t, 1.0);
       ambient.bus.gain.setTargetAtTime(0.0001, t, 1.0);
@@ -352,6 +379,18 @@
       curLoopKey = null;
       ambient.bus.gain.setTargetAtTime(1, t, 1.0);
     }
+  }
+
+  // the "non-boring" bit: while the SAME phase lingers (a long night), drift to a DIFFERENT
+  // variant of its bed every ~90–180 s with a slow 3 s crossfade — so night never just loops
+  // the same ~27 s clip. No-op unless the active phase has more than one variant loaded.
+  function rotateAmbient() {
+    if (ctx && ambient && curLoopKey && pools[curLoopKey] && pools[curLoopKey].length > 1) {
+      var b, tries = 0;
+      do { b = pickBuffer(curLoopKey); } while (b === curLoopBuf && ++tries < 8);
+      if (b && b !== curLoopBuf) startLoop(b, 3.0);    // slow crossfade to a fresh variant
+    }
+    ambientRotTimer = setTimeout(rotateAmbient, (90 + Math.random() * 90) * 1000);
   }
 
   /* ─── rain layer (file loop or synth hiss), independent of the bed's breathing ─── */
@@ -389,6 +428,7 @@
       started = true; buildAmbient(); breatheTick();
       overlayTimer = setTimeout(overlayTick, (12 + Math.random() * 20) * 1000);
       chimesTimer = setTimeout(chimesTick, (45 + Math.random() * 60) * 1000);   // first wind chimes a while in
+      ambientRotTimer = setTimeout(rotateAmbient, (90 + Math.random() * 90) * 1000);   // rotate the bed's variant over a long phase
     }
     chime();
   }
@@ -426,6 +466,8 @@
     ambLevel: function () { return ambGain ? ambGain.gain.value : null; },
     rainGain: function () { return Math.max(rainFileGain ? rainFileGain.gain.value : 0, ambient ? ambient.rgain.gain.value : 0); },
     poolSize: function (slot) { return pools[slot] ? pools[slot].length : 0; },
+    curBed: function () { return curLoopKey ? curLoopKey + ' [' + (pools[curLoopKey] ? pools[curLoopKey].indexOf(pools[curLoopKey].filter(function (p) { return p.buffer === curLoopBuf; })[0]) : -1) + ']' : 'synth'; },
+    _rotate: rotateAmbient,   // dev: force a variant rotation now
     _pools: pools, _pick: pickBuffer, _pending: function () { return Object.keys(pendingPlay); }
   };
   window.__sound = window.Sound;
