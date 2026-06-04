@@ -59,6 +59,7 @@
   var curLoopSrc = null, curLoopKey = null, curLoopGain = null, curLoopBuf = null;
   var rainFileGain = null, rainSrc = null, rainStarted = false;
   var breatheTimer = null, overlayTimer = null, chimesTimer = null, ambientRotTimer = null, preloaded = false;
+  var bedActive = false;          // the bed pulses: play (~5–10 s) → near-silence (a few s) → repeat
 
   function now() { return ctx ? ctx.currentTime : 0; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -310,26 +311,27 @@
     applyWorld();
   }
 
-  // slow random drift of the bed's volume. USUALLY a gentle wander around AMB_CENTER (~7%),
-  // but each breath has a real chance of a wider swing — or a deliberate fade to (near) silence.
-  // (A pure triangular walk centred on 7% made 0 essentially unreachable, so the deep fades
-  //  the design wants almost never happened; this mixes in explicit excursions instead.)
+  // the bed PULSES rather than droning non-stop: it swells up (4–8%) and plays for ~5–10 s,
+  // then sinks to near-silence (0–2%) and rests for a few seconds, over and over. Each return
+  // resumes the loop mid-stream, so it never feels like the same clip looping.
   function breatheTick() {
     if (!ctx || !ambGain) return;
-    var t = now(), r = Math.random(), target;
-    if (r < 0.14) {                                   // ~14%: a real fade toward — or to — silence
-      target = (Math.random() < 0.5) ? 0 : Math.random() * 0.03;
-    } else if (r < 0.32) {                            // ~18%: a wider swing anywhere across 0–12%
-      target = Math.random() * AMB_MAX;
-    } else {                                          // ~68%: the usual gentle drift around ~7%
-      target = AMB_CENTER + (Math.random() - Math.random()) * 0.02;
+    var t = now(), target, ramp, hold;
+    bedActive = !bedActive;
+    if (bedActive) {                                  // PLAY: audible, 4–8% of full bed, for 5–10 s
+      target = AMB_MAX * (0.5 + Math.random() * 0.5);
+      ramp = 1.2 + Math.random() * 1.3;               // swell in over ~1.2–2.5 s
+      hold = 5 + Math.random() * 5;                   // … then hold 5–10 s
+    } else {                                          // REST: near-silence 0–2%, for a few seconds
+      target = Math.random() * 0.02;
+      ramp = 1.0 + Math.random() * 1.2;               // sink over ~1–2.2 s
+      hold = 3 + Math.random() * 3;                   // … stay quiet 3–6 s
     }
     target = Math.max(AMB_MIN, Math.min(AMB_HARD_CAP, target));      // clamp: never below 0, never past 20%
-    var dur = 14 + Math.random() * 24;                // re-target every ~14–38 s
     ambGain.gain.cancelScheduledValues(t);
     ambGain.gain.setValueAtTime(ambGain.gain.value, t);
-    ambGain.gain.linearRampToValueAtTime(target, t + dur);          // linear → can reach a true 0 (silence)
-    breatheTimer = setTimeout(breatheTick, dur * 1000);
+    ambGain.gain.linearRampToValueAtTime(target, t + ramp);         // linear → can reach a true 0
+    breatheTimer = setTimeout(breatheTick, (ramp + hold) * 1000);   // next flip after the swell + hold
   }
 
   // per-phase timbre (volume is the breathing ambGain; this only shapes the synth bed)
