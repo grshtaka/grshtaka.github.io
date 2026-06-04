@@ -47,9 +47,9 @@
   try { muted = localStorage.getItem('manifold_muted') === '1'; } catch (e) {}
 
   var MASTER_VOL = 0.26;          // overall ceiling — keeps the layer ambient
-  var AMB_CENTER = 0.07;          // beds USUALLY sit ~7% …
-  var AMB_MIN = 0.0, AMB_MAX = 0.12;    // … drifting anywhere from full silence (0) up to 12% — occasional deep fades in/out
-  var AMB_HARD_CAP = 0.20;        // ALL ambient-<phase> beds must never exceed 20%
+  var AMB_CENTER = 0.05;          // beds usually sit ~5% …
+  var AMB_MIN = 0.0, AMB_MAX = 0.08;    // … drifting 0–8% (can fully fade to silence) — the quiet base layer
+  var AMB_HARD_CAP = 0.20;        // safety ceiling (beds stay well under)
   var CUE_VOL = 0.9;
   var MAX_ONESHOT_SEC = 6;        // cap one-shot playback so long files don't drone (you needn't trim them)
 
@@ -272,14 +272,14 @@
   function overlayTick() {
     if (!ctx) { overlayTimer = setTimeout(overlayTick, 60000); return; }
     var b = pickBuffer('overlay');
-    if (b) playEased(b, Math.min(0.25, 0.08 + Math.random() * 0.17), 2.5, 3);   // 'ambient'/'ambient2' overlay: peak ~8–25%, ease in/out
+    if (b) playEased(b, 0.05 + Math.random() * 0.07, 2.5, 3);   // 'ambient'/'ambient2' overlay: peak ~5–12%, ease in/out
     overlayTimer = setTimeout(overlayTick, (30 + Math.random() * 50) * 1000);   // every ~30–80 s
   }
   // wind chimes — rare; eases in, stays quiet (≤7%), eases away
   function chimesTick() {
     if (!ctx) { chimesTimer = setTimeout(chimesTick, 60000); return; }
     var b = pickBuffer('chimes');
-    if (b) playEased(b, 0.06, 4, 4);                              // peak 6% (≤7%), slow ease in/out
+    if (b) playEased(b, 0.12 + Math.random() * 0.06, 4, 4);      // wind chimes: peak ~12–18%, slow ease in/out
     chimesTimer = setTimeout(chimesTick, (120 + Math.random() * 180) * 1000);   // rarely: every ~2–5 min
   }
 
@@ -310,16 +310,21 @@
     applyWorld();
   }
 
-  // slow random drift of the bed's volume — a triangular walk CENTRED on AMB_CENTER (~7%):
-  // usually near 7%, occasionally all the way down to 0 (a full fade to silence) or up to
-  // AMB_MAX (12%). Extremes are rare → it reads as "usually ~7, breathing in and out".
+  // slow random drift of the bed's volume. USUALLY a gentle wander around AMB_CENTER (~7%),
+  // but each breath has a real chance of a wider swing — or a deliberate fade to (near) silence.
+  // (A pure triangular walk centred on 7% made 0 essentially unreachable, so the deep fades
+  //  the design wants almost never happened; this mixes in explicit excursions instead.)
   function breatheTick() {
     if (!ctx || !ambGain) return;
-    var t = now();
-    var s = Math.random() - Math.random();            // triangular [-1,1], peaks at 0
-    var target = (s < 0) ? AMB_CENTER + s * (AMB_CENTER - AMB_MIN)   // down toward 0
-                         : AMB_CENTER + s * (AMB_MAX - AMB_CENTER);  // up toward 12%
-    target = Math.max(AMB_MIN, Math.min(AMB_HARD_CAP, target));      // never below 0, never past 20%
+    var t = now(), r = Math.random(), target;
+    if (r < 0.14) {                                   // ~14%: a real fade toward — or to — silence
+      target = (Math.random() < 0.5) ? 0 : Math.random() * 0.03;
+    } else if (r < 0.32) {                            // ~18%: a wider swing anywhere across 0–12%
+      target = Math.random() * AMB_MAX;
+    } else {                                          // ~68%: the usual gentle drift around ~7%
+      target = AMB_CENTER + (Math.random() - Math.random()) * 0.02;
+    }
+    target = Math.max(AMB_MIN, Math.min(AMB_HARD_CAP, target));      // clamp: never below 0, never past 20%
     var dur = 14 + Math.random() * 24;                // re-target every ~14–38 s
     ambGain.gain.cancelScheduledValues(t);
     ambGain.gain.setValueAtTime(ambGain.gain.value, t);
