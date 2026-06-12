@@ -4,18 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>THE MANIFOLD · DARKROOM</title>
-<script>
-  /* ---- darkroom gate: same passphrase + session key as the editor ---- */
-  (function () {
-    var EDITOR_PASS = "amara";
-    try {
-      if (sessionStorage.getItem('manifold_editor') === '1') return;  // already unlocked this session
-      var p = window.prompt('Darkroom passphrase:');
-      if (p === EDITOR_PASS) sessionStorage.setItem('manifold_editor', '1');
-      else window.location.replace('index.html');
-    } catch (e) { window.location.replace('index.html'); }
-  })();
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Pirata+One&family=VT323&display=swap" rel="stylesheet">
@@ -31,12 +19,33 @@
 
   .dk-title { font-family:"Pirata One",serif; font-size:clamp(34px,6vw,60px); color:var(--sage);
     text-shadow:0 0 14px rgba(120,180,110,.5); margin:0 0 .2em; }
-  .dk-sub { color:var(--moss); font-size:18px; margin:0 0 2vh; letter-spacing:1px; }
+  .dk-sub { color:var(--moss); font-size:18px; margin:0; letter-spacing:1px; }
+  .dk-head { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:0 0 2vh; min-height:30px; }
   .dk-note { color:var(--dim); font-size:15px; line-height:1.5; border-left:2px solid var(--line); padding-left:12px; margin:0 0 3vh; }
   a.home { color:var(--moss); font-size:16px; }
 
-  .dk-wrap { max-width:1500px; margin:0 auto; display:grid; grid-template-columns: 1fr 350px; gap:28px; align-items:start; }
+  .dk-wrap { max-width:1900px; margin:0 auto; display:grid; grid-template-columns: 1fr 350px; gap:28px; align-items:start; }
   @media (max-width: 900px){ .dk-wrap{ grid-template-columns:1fr; } .dk-rack{ position:static !important; max-height:none !important; } }
+  /* wide screens: the rack spreads into more columns so it fits one screen */
+  @media (min-width: 1500px){
+    .dk-wrap { grid-template-columns: 1fr 714px; }
+    #rack-panels { columns:2; column-gap:14px; }
+    #rack-panels .panel { break-inside:avoid; }
+  }
+  @media (min-width: 1800px){
+    .dk-wrap { grid-template-columns: 1fr 1078px; }
+    #rack-panels { columns:3; }
+  }
+  /* minimized panels dock as chips in the header line — no rack reflow */
+  #min-strip { display:flex; flex-wrap:wrap; gap:6px; }
+  #min-strip:empty { display:none; }
+  .dk-tray .panel { margin:14px 0 0; }
+  .panel.min { padding:2px 10px; margin:0; cursor:pointer; }
+  .panel.min:hover { border-color:var(--moss); }
+  .panel.min > *:not(h3) { display:none !important; }
+  .panel.min h3 { margin:0; font-size:13px; white-space:nowrap; }
+  .panel.min h3 .tog { display:none; }
+  .pmin { padding:1px 8px; }
 
   /* ---- left: the developing tray ---- */
   .dk-stage { position:relative; background:#000; border:1px solid var(--line); border-radius:5px;
@@ -57,8 +66,15 @@
 
   /* ---- right: the rack ---- */
   .dk-rack { position:sticky; top:2vh; max-height:96vh; overflow-y:auto; padding-right:4px; scrollbar-width:thin; }
-  .panel { border:1px solid var(--line); border-radius:5px; padding:13px 14px; margin-bottom:14px; background:rgba(0,0,0,.2); }
-  .panel h3 { color:var(--moss); font-size:15px; letter-spacing:2px; margin:0 0 10px; font-weight:normal; }
+  .panel { border:1px solid var(--line); border-radius:5px; padding:11px 13px; margin-bottom:12px; background:rgba(0,0,0,.2); }
+  .panel h3 { color:var(--moss); font-size:15px; letter-spacing:2px; margin:0 0 8px; font-weight:normal;
+    display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .tog.mini { padding:1px 9px; font-size:13px; letter-spacing:1px; }
+  .upre { display:inline-flex; align-items:stretch; }
+  .upre .btn { border-radius:4px 0 0 4px; }
+  .upre .del { display:grid; place-items:center; border:1px solid var(--line); border-left:none; border-radius:0 4px 4px 0;
+    color:var(--bloom,#cf8a4a); padding:0 8px; font-size:15px; cursor:pointer; }
+  .upre .del:hover { background:rgba(207,138,74,.15); }
   .hint { color:var(--dim); font-size:13px; margin-top:5px; line-height:1.4; }
   label { display:block; color:var(--moss); font-size:15px; letter-spacing:1px; margin:10px 0 4px; }
 
@@ -105,12 +121,10 @@
 <body>
 
   <h1 class="dk-title">THE MANIFOLD · DARKROOM</h1>
-  <p class="dk-sub">develop an image into glyphs — <a class="home" href="index.html">↩ back to the manifold</a> · <a class="home" href="editor.html">✶ the editor</a></p>
-  <p class="dk-note">
-    Drop any image or gif onto the tray (or paste one). Turn the knobs until it looks right —
-    the <b>LOTUS</b> preset is tuned toward <code>assets/lotus.gif</code>. Export a <b>.gif</b> to use
-    the result as a page background in <code>data/entries.js</code>.
-  </p>
+  <div class="dk-head">
+    <p class="dk-sub">develop an image into glyphs — <a class="home" href="index.html">↩ back to the manifold</a> · <a class="home" href="editor.html">✶ the editor</a></p>
+    <div id="min-strip"></div>
+  </div>
 
   <div class="dk-wrap">
 
@@ -129,10 +143,34 @@
       <div class="knob" style="max-width:340px">
         <label>FPS</label><input type="range" id="k-fps" min="0" max="60" step="1" value="0"><output>auto</output>
       </div>
+
+      <div class="panel">
+        <h3>⇪ EXPORT</h3>
+        <div class="crow" style="flex-wrap:wrap">
+          <label>SCALE</label>
+          <div class="seg" id="seg-scale">
+            <button type="button" data-v="1" class="on">×1</button>
+            <button type="button" data-v="2">×2</button>
+            <button type="button" data-v="3">×3</button>
+          </div>
+          <div class="knob" style="flex:1;min-width:220px;margin:0"><label>CLIP SECS</label><input type="range" id="k-secs" min="1" max="10" step="1" value="4"><output>4</output></div>
+        </div>
+        <div class="btns">
+          <button type="button" class="btn ghost" id="btn-copy">copy txt</button>
+          <button type="button" class="btn" id="btn-txt">⇪ .txt</button>
+          <button type="button" class="btn" id="btn-png">⇪ .png</button>
+          <button type="button" class="btn" id="btn-webm">⇪ .webm</button>
+          <button type="button" class="btn" id="btn-gif">⇪ .gif</button>
+          <button type="button" class="btn" id="btn-html">⇪ .html</button>
+        </div>
+        <div class="ex-status" id="ex-status"></div>
+        <div class="hint">clip secs applies to stills / motion; gifs export one full loop. .html can get large for long gifs.</div>
+      </div>
     </div>
 
     <!-- ============ RACK (controls) ============ -->
     <div class="dk-rack">
+      <div id="rack-panels">
 
       <div class="panel">
         <h3>▤ SOURCE</h3>
@@ -152,8 +190,19 @@
           <button type="button" class="btn ghost" data-preset="classic">CLASSIC</button>
           <button type="button" class="btn ghost" data-preset="blocks">BLOCKS</button>
           <button type="button" class="btn ghost" data-preset="matrix">MATRIX</button>
+          <button type="button" class="btn ghost" data-preset="ghost">GHOST</button>
+          <button type="button" class="btn ghost" data-preset="melt">MELT</button>
+          <button type="button" class="btn ghost" data-preset="glitchcore">GLITCHCORE</button>
+          <button type="button" class="btn ghost" data-preset="blueprint">BLUEPRINT</button>
+          <button type="button" class="btn ghost" data-preset="xray">XRAY</button>
         </div>
         <div class="hint">a preset just turns the knobs below — keep adjusting after.</div>
+        <label>YOUR PRESETS (this browser)</label>
+        <div class="crow">
+          <input type="text" id="f-preset-name" placeholder="name it…" style="flex:1">
+          <button type="button" class="btn ghost" id="btn-save-preset">＋ SAVE</button>
+        </div>
+        <div class="btns" id="user-presets"></div>
       </div>
 
       <div class="panel">
@@ -185,6 +234,9 @@
           <button type="button" data-v="blocks">BLOCKS</button>
           <button type="button" data-v="dots">DOTS</button>
           <button type="button" data-v="binary">BINARY</button>
+          <button type="button" data-v="kana">KANA</button>
+          <button type="button" data-v="braille">BRAILLE</button>
+          <button type="button" data-v="geo">GEO</button>
           <button type="button" data-v="custom">CUSTOM</button>
         </div>
         <label>custom glyphs (dark → light)</label>
@@ -197,6 +249,7 @@
         <h3>❀ COLOR</h3>
         <div class="seg" id="seg-cmode">
           <button type="button" data-v="garden" class="on">GARDEN</button>
+          <button type="button" data-v="mono">MONO</button>
           <button type="button" data-v="source">SOURCE</button>
           <button type="button" data-v="tint">TINT</button>
           <button type="button" data-v="duo">DUO</button>
@@ -213,7 +266,7 @@
       </div>
 
       <div class="panel">
-        <h3>〜 MOTION</h3>
+        <h3>〜 MOTION <button type="button" class="tog mini on" id="t-en-motion">ON</button></h3>
         <div class="knob"><label>FLICKER</label><input type="range" id="k-flicker" min="0" max="100" step="1" value="0"><output>0</output></div>
         <div class="knob"><label>DRIFT</label><input type="range" id="k-drift" min="0" max="100" step="1" value="0"><output>0</output></div>
         <div class="knob"><label>SCANLINE</label><input type="range" id="k-scan" min="0" max="100" step="1" value="0"><output>0</output></div>
@@ -221,7 +274,7 @@
       </div>
 
       <div class="panel">
-        <h3>▚ FX · DATAMOSH</h3>
+        <h3>▚ FX · DATAMOSH <button type="button" class="tog mini on" id="t-en-mosh">ON</button></h3>
         <div class="knob"><label>MOSH</label><input type="range" id="k-mosh" min="0" max="100" step="1" value="0"><output>0</output></div>
         <div class="knob"><label>DECAY</label><input type="range" id="k-decay" min="0" max="100" step="1" value="40"><output>40</output></div>
         <label>SMEAR DIRECTION</label>
@@ -234,8 +287,7 @@
       </div>
 
       <div class="panel">
-        <h3>⇅ FX · PIXEL SORT</h3>
-        <div class="togs"><button type="button" class="tog" id="t-sort">SORT ON</button></div>
+        <h3>⇅ FX · PIXEL SORT <button type="button" class="tog mini" id="t-en-sort">OFF</button></h3>
         <div class="knob"><label>THRESHOLD</label><input type="range" id="k-sortth" min="0" max="100" step="1" value="50"><output>50</output></div>
         <div class="knob"><label>RUN LENGTH</label><input type="range" id="k-sortrun" min="2" max="120" step="1" value="60"><output>60</output></div>
         <label>DIRECTION</label>
@@ -246,7 +298,7 @@
       </div>
 
       <div class="panel">
-        <h3>▞ FX · GLITCH</h3>
+        <h3>▞ FX · GLITCH <button type="button" class="tog mini on" id="t-en-glitch">ON</button></h3>
         <div class="knob"><label>TEAR</label><input type="range" id="k-tear" min="0" max="100" step="1" value="0"><output>0</output></div>
         <div class="knob"><label>RGB SPLIT</label><input type="range" id="k-rgb" min="0" max="100" step="1" value="0"><output>0</output></div>
         <div class="knob"><label>CORRUPTION</label><input type="range" id="k-corrupt" min="0" max="100" step="1" value="0"><output>0</output></div>
@@ -254,39 +306,17 @@
       </div>
 
       <div class="panel">
-        <h3>≋ FX · VHS</h3>
+        <h3>≋ FX · VHS <button type="button" class="tog mini on" id="t-en-vhs">ON</button></h3>
         <div class="knob"><label>GHOST</label><input type="range" id="k-ghost" min="0" max="100" step="1" value="0"><output>0</output></div>
         <div class="knob"><label>WOBBLE</label><input type="range" id="k-wobble" min="0" max="100" step="1" value="0"><output>0</output></div>
         <div class="knob"><label>NOISE</label><input type="range" id="k-noise" min="0" max="100" step="1" value="0"><output>0</output></div>
       </div>
 
-      <div class="panel">
-        <h3>⇪ EXPORT</h3>
-        <label>SCALE</label>
-        <div class="seg" id="seg-scale">
-          <button type="button" data-v="1" class="on">×1</button>
-          <button type="button" data-v="2">×2</button>
-          <button type="button" data-v="3">×3</button>
-        </div>
-        <div class="knob"><label>CLIP SECS</label><input type="range" id="k-secs" min="1" max="10" step="1" value="4"><output>4</output></div>
-        <div class="btns">
-          <button type="button" class="btn ghost" id="btn-copy">copy txt</button>
-          <button type="button" class="btn" id="btn-txt">⇪ .txt</button>
-          <button type="button" class="btn" id="btn-png">⇪ .png</button>
-        </div>
-        <div class="btns">
-          <button type="button" class="btn" id="btn-webm">⇪ .webm</button>
-          <button type="button" class="btn" id="btn-gif">⇪ .gif</button>
-          <button type="button" class="btn" id="btn-html">⇪ .html</button>
-        </div>
-        <div class="ex-status" id="ex-status"></div>
-        <div class="hint">clip secs applies to stills / motion; gifs export one full loop. .html can get large for long gifs.</div>
       </div>
-
     </div>
   </div>
 
 <script src="js/vendor/omggif.js"></script>
-<script src="js/ascii.js?v=2"></script>
+<script src="js/ascii.js?v=5"></script>
 </body>
 </html>

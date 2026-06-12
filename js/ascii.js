@@ -12,9 +12,10 @@ var S = {
   cmode: 'garden', tint: '#bce08e', duo1: '#10220c', duo2: '#bce08e', sat: 100, glow: false, bg: 'black',
   flicker: 0, drift: 0, scan: 0,
   mosh: 0, decay: 40, moshdir: 'down',
-  sort: false, sortth: 50, sortrun: 60, sortdir: 'h',
+  sortth: 50, sortrun: 60, sortdir: 'h',
   tear: 0, rgb: 0, corrupt: 0,
   ghost: 0, wobble: 0, noise: 0,
+  enMotion: true, enMosh: true, enSort: false, enGlitch: true, enVhs: true,
   fit: 'contain', fps: 0, scale: 1, secs: 4, seed: 1234
 };
 
@@ -23,32 +24,44 @@ var CHARSETS = {
   minimal: ' .:*#',
   blocks:  ' ░▒▓█',
   dots:    ' ·∘○◉●',
-  binary:  ' 01'
+  binary:  ' 01',
+  kana:    ' ･ｨｼﾂｸﾈﾗﾊﾑﾎ',
+  braille: ' ⠁⠉⠋⠛⠟⠿⡿⣿',
+  geo:     ' ·▫▪◇◆█'
 };
 var EDGE_GLYPHS = ['-', '\\', '|', '/'];           // by gradient angle bucket
 var CORRUPT_GLYPHS = '█▚▞▒§¿@#%&?';
 
+var FX_OFF = { flicker: 0, drift: 0, scan: 0, mosh: 0, tear: 0, rgb: 0, corrupt: 0, ghost: 0, wobble: 0, noise: 0,
+  enMotion: true, enMosh: true, enSort: false, enGlitch: true, enVhs: true };
+function preset(o) {
+  var base = { rows: 0, aspect: 0.5, bright: 0, contrast: 0, gamma: 1, sparse: 0, invert: false, dither: false,
+    charset: 'ramp', reverse: false, edge: 0, sat: 100, glow: false, bg: 'black' };
+  var out = {};
+  Object.keys(FX_OFF).forEach(function (k) { out[k] = FX_OFF[k]; });
+  Object.keys(base).forEach(function (k) { out[k] = base[k]; });
+  Object.keys(o).forEach(function (k) { out[k] = o[k]; });
+  return out;
+}
 var PRESETS = {
-  lotus:   { cols: 180, rows: 0, aspect: 0.5, zoom: 8, bright: 0, contrast: 25, gamma: 1.15, sparse: 34,
-             invert: false, dither: false, charset: 'ramp', reverse: false, edge: 0,
-             cmode: 'source', sat: 140, glow: true, bg: 'black',
-             flicker: 14, drift: 8, scan: 0, mosh: 0, sort: false, tear: 0, rgb: 0, corrupt: 0,
-             ghost: 0, wobble: 0, noise: 5 },
-  classic: { cols: 140, rows: 0, aspect: 0.5, zoom: 9, bright: 0, contrast: 0, gamma: 1, sparse: 0,
-             invert: false, dither: false, charset: 'ramp', reverse: false, edge: 0,
-             cmode: 'garden', sat: 100, glow: false, bg: 'black',
-             flicker: 0, drift: 0, scan: 0, mosh: 0, sort: false, tear: 0, rgb: 0, corrupt: 0,
-             ghost: 0, wobble: 0, noise: 0 },
-  blocks:  { cols: 120, rows: 0, aspect: 0.5, zoom: 10, bright: 0, contrast: 10, gamma: 1, sparse: 0,
-             invert: false, dither: true, charset: 'blocks', reverse: false, edge: 0,
-             cmode: 'source', sat: 120, glow: false, bg: 'black',
-             flicker: 0, drift: 0, scan: 0, mosh: 0, sort: false, tear: 0, rgb: 0, corrupt: 0,
-             ghost: 0, wobble: 0, noise: 0 },
-  matrix:  { cols: 150, rows: 0, aspect: 0.5, zoom: 9, bright: 0, contrast: 30, gamma: 1.1, sparse: 26,
-             invert: false, dither: false, charset: 'custom', reverse: false, edge: 0,
-             cmode: 'duo', glow: true, bg: 'black', sat: 100,
-             flicker: 30, drift: 45, scan: 18, mosh: 0, sort: false, tear: 0, rgb: 0, corrupt: 4,
-             ghost: 25, wobble: 0, noise: 10 }
+  /* glyphs typed over the video's own colors — nothing recolored */
+  lotus:      preset({ cols: 180, zoom: 8, contrast: 25, gamma: 1.15, sparse: 34,
+                       cmode: 'source', glow: true, flicker: 14, drift: 8, noise: 5 }),
+  classic:    preset({ cols: 140, zoom: 9, cmode: 'garden' }),
+  blocks:     preset({ cols: 120, zoom: 10, contrast: 10, dither: true, cmode: 'source', sat: 120 }),
+  matrix:     preset({ cols: 150, zoom: 9, contrast: 30, gamma: 1.1, sparse: 26, charset: 'custom',
+                       cmode: 'duo', glow: true, flicker: 30, drift: 45, scan: 18, corrupt: 4, ghost: 25, noise: 10 }),
+  ghost:      preset({ cols: 150, zoom: 9, contrast: 15, sparse: 18, cmode: 'tint', tint: '#9fd8e8', glow: true,
+                       flicker: 10, ghost: 55, wobble: 12, noise: 12 }),
+  melt:       preset({ cols: 150, zoom: 9, contrast: 15, sparse: 10, cmode: 'source',
+                       mosh: 65, decay: 25, moshdir: 'down' }),
+  glitchcore: preset({ cols: 150, zoom: 9, contrast: 20, sparse: 8, cmode: 'source',
+                       enSort: true, sortth: 55, sortrun: 80, sortdir: 'h',
+                       tear: 45, rgb: 40, corrupt: 18 }),
+  blueprint:  preset({ cols: 160, zoom: 9, contrast: 10, sparse: 12, charset: 'minimal', edge: 70,
+                       cmode: 'duo', duo1: '#06182e', duo2: '#7ec9ff', glow: true }),
+  xray:       preset({ cols: 150, zoom: 9, contrast: 25, gamma: 0.9, invert: true,
+                       cmode: 'tint', tint: '#bfe6ff' })
 };
 var MATRIX_CHARS = ' ･ｲｸｼﾂﾈﾊﾎﾑﾗ01';
 
@@ -67,6 +80,7 @@ var statusEl= document.getElementById('dk-status');
 var exStatus= document.getElementById('ex-status');
 
 var dirty = true;
+var decoding = false;   // while true, the status line belongs to the decoder
 
 /* sampling scratch */
 var sampCv = document.createElement('canvas');
@@ -98,8 +112,10 @@ function charsetString() {
 }
 
 function timeFxOn() {
-  return S.flicker > 0 || S.drift > 0 || S.scan > 0 || S.mosh > 0 || S.tear > 0 ||
-         S.corrupt > 0 || S.ghost > 0 || S.wobble > 0 || S.noise > 0;
+  return (S.enMotion && (S.flicker > 0 || S.drift > 0 || S.scan > 0)) ||
+         (S.enMosh && S.mosh > 0) ||
+         (S.enGlitch && (S.tear > 0 || S.corrupt > 0)) ||
+         (S.enVhs && (S.ghost > 0 || S.wobble > 0 || S.noise > 0));
 }
 
 function download(blob, name) {
@@ -135,6 +151,8 @@ async function loadFile(file) {
     exStatus.textContent = '';
     fileName = file.name || 'pasted';
     disposeFrames();
+    dropEl.style.display = 'none';        // hide the placeholder the moment developing starts
+    decoding = true;
     if (isVideo) {
       await decodeVideo(file);
     } else {
@@ -144,12 +162,14 @@ async function loadFile(file) {
       if (isGif) await decodeGif(u8);
       else await decodeStill(file);
     }
+    decoding = false;
     curFrame = 0; playing = true;
     fxReset(previewFx);
-    dropEl.style.display = 'none';
     updateTransport();
     dirty = true;
   } catch (e) {
+    decoding = false;
+    if (!frames.length) dropEl.style.display = '';
     setStatus('<span style="color:var(--bloom,#cf8a4a)">could not develop that file — ' + e.message + '</span>');
   }
 }
@@ -323,7 +343,8 @@ function computeGrid(frameIdx, tick, fxState) {
   }
 
   /* --- motion: drift / flicker / scanline --- */
-  if (S.drift > 0) {
+  var enMo = S.enMotion;
+  if (enMo && S.drift > 0) {
     var amp = (S.drift / 100) * Math.max(2, rows * 0.12);
     G.lum2.set(G.lum); G.r2.set(G.r); G.g2.set(G.g); G.b2.set(G.b);
     for (x = 0; x < cols; x++) {
@@ -338,11 +359,11 @@ function computeGrid(frameIdx, tick, fxState) {
       }
     }
   }
-  if (S.flicker > 0) {
+  if (enMo && S.flicker > 0) {
     var fAmt = S.flicker * 1.6;
     for (i = 0; i < n; i++) G.lum[i] = clamp(G.lum[i] + (hash3(i % cols, (i / cols) | 0, tick, S.seed) - 0.5) * fAmt, 0, 255);
   }
-  if (S.scan > 0) {
+  if (enMo && S.scan > 0) {
     var bandY = (tick * 0.7) % (rows * 1.4);
     var sAmt = S.scan * 1.8;
     for (y = 0; y < rows; y++) {
@@ -353,10 +374,10 @@ function computeGrid(frameIdx, tick, fxState) {
   }
 
   /* --- FX: pixel sort --- */
-  if (S.sort) pixelSort(cols, rows);
+  if (S.enSort) pixelSort(cols, rows);
 
   /* --- FX: datamosh / melt --- */
-  if (S.mosh > 0) datamosh(cols, rows, fxState);
+  if (S.enMosh && S.mosh > 0) datamosh(cols, rows, fxState);
   else if (fxState.lum) fxReset(fxState);
 
   /* --- edge field (before sparsity blanks anything) --- */
@@ -402,7 +423,7 @@ function computeGrid(frameIdx, tick, fxState) {
   }
 
   /* --- FX: corruption --- */
-  if (S.corrupt > 0) {
+  if (S.enGlitch && S.corrupt > 0) {
     var p = (S.corrupt / 100) * 0.10;
     var ct = Math.floor(tick / 2);
     for (i = 0; i < n; i++) {
@@ -519,10 +540,10 @@ function colorize(n) {
     if (mode === 'garden') {
       var f = 0.30 + 0.70 * L;
       r = SAGE[0] * f; g = SAGE[1] * f; b = SAGE[2] * f;
+    } else if (mode === 'mono') {
+      r = g = b = 255 * (0.25 + 0.75 * L);   // black & white
     } else if (mode === 'source') {
-      r = G.r[i]; g = G.g[i]; b = G.b[i];
-      var mx = Math.max(r, g, b, 1), lift = 90 + 165 * L;   // keep glyphs legible on black
-      r = r * lift / mx; g = g * lift / mx; b = b * lift / mx;
+      r = G.r[i]; g = G.g[i]; b = G.b[i];   // the video's own colors, untouched
     } else if (mode === 'tint') {
       var ft = 0.15 + 0.85 * L;
       r = tint[0] * ft; g = tint[1] * ft; b = tint[2] * ft;
@@ -563,7 +584,7 @@ function draw(tctx, grid, tick, fontPx) {
   }
 
   /* background / ghosting */
-  var ghostKeep = S.ghost > 0 ? (S.ghost / 100) * 0.90 : 0;
+  var ghostKeep = (S.enVhs && S.ghost > 0) ? (S.ghost / 100) * 0.90 : 0;
   if (S.bg === 'black') {
     tctx.fillStyle = ghostKeep > 0 ? 'rgba(0,0,0,' + (1 - ghostKeep).toFixed(3) + ')' : '#000';
     tctx.fillRect(0, 0, W, H);
@@ -579,7 +600,7 @@ function draw(tctx, grid, tick, fontPx) {
   tctx.textBaseline = 'top';
 
   /* per-row offsets: tear bands + vhs wobble */
-  var tearAmt = S.tear / 100, wobAmt = S.wobble / 100;
+  var tearAmt = S.enGlitch ? S.tear / 100 : 0, wobAmt = S.enVhs ? S.wobble / 100 : 0;
   var bandT = Math.floor(tick / 3);
   var curKey = -1;
   for (var y = 0; y < rows; y++) {
@@ -604,7 +625,7 @@ function draw(tctx, grid, tick, fontPx) {
   }
 
   /* vhs noise sprinkle */
-  if (S.noise > 0) {
+  if (S.enVhs && S.noise > 0) {
     var cs = charsetString();
     var cnt = Math.floor((S.noise / 100) * cols * rows * 0.02);
     tctx.fillStyle = 'rgba(150,190,140,0.5)';
@@ -627,7 +648,7 @@ function draw(tctx, grid, tick, fontPx) {
   }
 
   /* rgb split: channel-isolated offset re-composite */
-  if (S.rgb > 0) {
+  if (S.enGlitch && S.rgb > 0) {
     var dpx = Math.max(1, Math.round((S.rgb / 100) * fontPx * 0.9));
     if (tmpA.width !== W || tmpA.height !== H) { tmpA.width = W; tmpA.height = H; }
     if (tmpB.width !== W || tmpB.height !== H) { tmpB.width = W; tmpB.height = H; }
@@ -678,7 +699,7 @@ function loop(t) {
   draw(ctx, G, tick, S.zoom);
   lastCellsTick = tick;
   dirty = false;
-  updateStatusLine();
+  if (!decoding) updateStatusLine();
 }
 
 function updateStatusLine() {
@@ -959,8 +980,9 @@ var KNOBS = {
 };
 var SEGS = { 'seg-fit': 'fit', 'seg-charset': 'charset', 'seg-cmode': 'cmode', 'seg-bg': 'bg',
   'seg-moshdir': 'moshdir', 'seg-sortdir': 'sortdir', 'seg-scale': 'scale' };
-var TOGS = { 't-invert': 'invert', 't-dither': 'dither', 't-reverse': 'reverse',
-  't-sort': 'sort', 't-glow': 'glow' };
+var TOGS = { 't-invert': 'invert', 't-dither': 'dither', 't-reverse': 'reverse', 't-glow': 'glow',
+  't-en-motion': 'enMotion', 't-en-mosh': 'enMosh', 't-en-sort': 'enSort',
+  't-en-glitch': 'enGlitch', 't-en-vhs': 'enVhs' };
 var COLORS = { 'c-tint': 'tint', 'c-duo1': 'duo1', 'c-duo2': 'duo2' };
 
 function knobOut(id, v) {
@@ -993,6 +1015,7 @@ function wire() {
     el.addEventListener('click', function () {
       S[key] = !S[key];
       el.classList.toggle('on', S[key]);
+      if (id.indexOf('t-en-') === 0) el.textContent = S[key] ? 'ON' : 'OFF';
       dirty = true;
     });
   });
@@ -1017,6 +1040,21 @@ function wire() {
       syncUI(); fxReset(previewFx); dirty = true;
     });
   });
+
+  /* user presets (saved in this browser) */
+  $('btn-save-preset').addEventListener('click', function () {
+    var name = ($('f-preset-name').value || '').trim();
+    var all = loadUserPresets();
+    if (!name) name = 'preset ' + (Object.keys(all).length + 1);
+    var snap = {};
+    Object.keys(S).forEach(function (k) { if (k !== 'seed') snap[k] = S[k]; });
+    all[name] = snap;
+    saveUserPresets(all);
+    $('f-preset-name').value = '';
+    renderUserPresets();
+    exMsg('saved preset “' + name + '”');
+  });
+  renderUserPresets();
 
   /* file / drop / paste */
   $('f-file').addEventListener('change', function () { if (this.files[0]) loadFile(this.files[0]); });
@@ -1054,6 +1092,40 @@ function wire() {
   $('btn-html').addEventListener('click', function () { exportHtml().catch(function (e) { exMsg('html failed — ' + e.message); dirty = true; }); });
 }
 
+var LS_PRESETS = 'manifold_darkroom_presets';
+function loadUserPresets() {
+  try { return JSON.parse(localStorage.getItem(LS_PRESETS) || '{}'); } catch (e) { return {}; }
+}
+function saveUserPresets(p) {
+  try { localStorage.setItem(LS_PRESETS, JSON.stringify(p)); } catch (e) { exMsg('could not save — storage full?'); }
+}
+function renderUserPresets() {
+  var box = $('user-presets');
+  box.innerHTML = '';
+  var all = loadUserPresets();
+  Object.keys(all).forEach(function (name) {
+    var wrap = document.createElement('span');
+    wrap.className = 'upre';
+    var apply = document.createElement('button');
+    apply.type = 'button'; apply.className = 'btn ghost';
+    apply.textContent = name.toUpperCase();
+    apply.addEventListener('click', function () {
+      var p = all[name];
+      Object.keys(p).forEach(function (k) { if (k in S) S[k] = p[k]; });
+      syncUI(); fxReset(previewFx); dirty = true;
+    });
+    var del = document.createElement('a');
+    del.className = 'del'; del.textContent = '×'; del.title = 'forget this preset';
+    del.addEventListener('click', function () {
+      delete all[name];
+      saveUserPresets(all);
+      renderUserPresets();
+    });
+    wrap.appendChild(apply); wrap.appendChild(del);
+    box.appendChild(wrap);
+  });
+}
+
 function syncSeg(id, v) {
   $(id).querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === String(v)); });
 }
@@ -1061,15 +1133,68 @@ function syncSeg(id, v) {
 function syncUI() {
   Object.keys(KNOBS).forEach(function (id) { $(id).value = S[KNOBS[id][0]]; knobOut(id, S[KNOBS[id][0]]); });
   Object.keys(SEGS).forEach(function (id) { syncSeg(id, S[SEGS[id]]); });
-  Object.keys(TOGS).forEach(function (id) { $(id).classList.toggle('on', !!S[TOGS[id]]); });
+  Object.keys(TOGS).forEach(function (id) {
+    $(id).classList.toggle('on', !!S[TOGS[id]]);
+    if (id.indexOf('t-en-') === 0) $(id).textContent = S[TOGS[id]] ? 'ON' : 'OFF';
+  });
   Object.keys(COLORS).forEach(function (id) { $(id).value = S[COLORS[id]]; });
   $('f-charset').value = S.custom;
+}
+
+/* ---- minimizable panels: dock as chips above the rack ---- */
+var LS_MIN = 'manifold_darkroom_min';
+function initMinimize() {
+  var rackPanels = $('rack-panels'), strip = $('min-strip');
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(LS_MIN) || '{}'); } catch (e) {}
+  var panels = Array.prototype.slice.call(rackPanels.querySelectorAll('.panel'));
+  function persist() {
+    var st = {};
+    strip.querySelectorAll('.panel').forEach(function (p) { st[p.dataset.pidx] = 1; });
+    try { localStorage.setItem(LS_MIN, JSON.stringify(st)); } catch (e) {}
+  }
+  function setMin(p, min, skipSave) {
+    if (min) {
+      p.classList.add('min');
+      p._minAt = performance.now();
+      strip.appendChild(p);
+    } else {
+      p.classList.remove('min');
+      var idx = +p.dataset.pidx, before = null;
+      var sibs = rackPanels.querySelectorAll('.panel');
+      for (var i = 0; i < sibs.length; i++) {
+        if (+sibs[i].dataset.pidx > idx) { before = sibs[i]; break; }
+      }
+      rackPanels.insertBefore(p, before);
+    }
+    if (!skipSave) persist();
+  }
+  panels.forEach(function (p, idx) {
+    p.dataset.pidx = idx;
+    var h = p.querySelector('h3');
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'tog mini pmin'; btn.textContent = '–'; btn.title = 'minimize';
+    h.appendChild(btn);
+    btn.addEventListener('click', function (e) {
+      e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault();
+      if (!p.classList.contains('min')) setMin(p, true);
+    });
+    p.addEventListener('click', function (e) {
+      /* restore on chip click — but never from the same click that minimized it */
+      if (!p.classList.contains('min')) return;
+      if (p._minAt && performance.now() - p._minAt < 250) return;
+      e.stopPropagation();
+      setMin(p, false);
+    });
+    if (saved[idx]) setMin(p, true, true);
+  });
 }
 
 /* ============================== boot =============================== */
 
 wire();
 syncUI();
+initMinimize();
 if (document.fonts && document.fonts.load) {
   document.fonts.load('12px VT323').then(function () { dirty = true; });
 }
